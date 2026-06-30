@@ -54,6 +54,11 @@
   button:hover:not(:disabled){filter:brightness(1.07)}
 
   .plots{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  .plots3{grid-template-columns:repeat(3,1fr)}
+  .matpanel{margin-top:16px;background:#0a1024;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .mathead{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
+  .matpanel pre{margin:0;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;color:var(--ink);
+    white-space:pre-wrap;word-break:break-word}
   .plot{background:#0a1024;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
   .plot h4{margin:0 0 2px;font-size:15px}
   .plot .arch{font-size:12px;color:var(--muted);margin:0 0 10px;font-family:ui-monospace,Menlo,monospace}
@@ -82,7 +87,7 @@
   a.inline{color:var(--accent)}
   @media (max-width:720px){
     .cards{grid-template-columns:1fr}
-    .plots{grid-template-columns:1fr}
+    .plots,.plots3{grid-template-columns:1fr}
     h1{font-size:27px}
   }
 </style>
@@ -95,7 +100,7 @@
     <p class="sub">Four small, self-contained experiments that build the intuition behind every deep network — starting with the single idea that makes them more than glorified linear regression.</p>
     <nav class="toc">
       <a href="#p1">Part 1 · Activations</a>
-      <a href="#p2">Part 2 · soon</a>
+      <a href="#p2">Part 2 · Depth</a>
       <a href="#p3">Part 3 · soon</a>
       <a href="#p4">Part 4 · soon</a>
     </nav>
@@ -176,8 +181,88 @@
   </section>
 
   <!-- ===================== PARTS 2–4 (placeholders) ===================== -->
-  <section class="part soon" id="p2"><span class="ptag">Part 2 · S1-2</span><h2>Coming next</h2>
-    <p class="claim">Add this section when the Part 2 brief is shared.</p></section>
+  <section class="part" id="p2">
+    <span class="ptag">Part 2 · S1-2</span>
+    <h2>Depth without nonlinearity is a lie</h2>
+    <p class="claim">Five stacked linear layers collapse to a single linear map, so a 5-layer linear net is no
+      stronger than 1 layer — both fail the ring task identically. Insert ReLUs between the same five layers
+      and it suddenly solves it.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>The claim</h3>
+        <p>Stacking linear layers buys nothing: <b>W₅W₄W₃W₂W₁ · x</b> is just <b>(W₅W₄W₃W₂W₁) · x</b> — one
+          matrix. So 5 linear layers = 1 linear layer = one straight boundary.</p>
+      </div>
+      <div class="card cc">
+        <h3>The concept</h3>
+        <p>Depth only adds power when something <b>nonlinear</b> sits between the layers. The ReLUs stop the
+          matrices from merging, so each layer can bend space independently.</p>
+      </div>
+      <div class="card cb">
+        <h3>What we built</h3>
+        <p>Same ring data, three models: <b>1 linear layer</b>, <b>5 linear layers</b> (no activation), and
+          <b>5 layers + ReLU</b>. Then we literally multiply the five matrices and show the product is one matrix.</p>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="controls">
+        <label class="ctl">Noise <span class="val" id="noiseVal2">0.18</span>
+          <input type="range" id="noise2" min="0.05" max="0.35" step="0.01" value="0.18">
+        </label>
+        <div class="btns">
+          <button class="ghost" id="regen2">Generate new data</button>
+          <button id="train2">▶ Train all three</button>
+        </div>
+      </div>
+
+      <div class="plots plots3">
+        <div class="plot">
+          <h4>(a) 1 linear layer</h4>
+          <p class="arch">2 → 1 → σ</p>
+          <canvas id="cv1" width="300" height="300"></canvas>
+          <div class="acc">accuracy <b id="acc1">—</b></div>
+          <div class="accbar"><i id="bar1"></i></div>
+        </div>
+        <div class="plot">
+          <h4>(b) 5 linear layers</h4>
+          <p class="arch">2→8→8→8→8→1 → σ <br><span style="color:var(--bad)">no activations</span></p>
+          <canvas id="cv5" width="300" height="300"></canvas>
+          <div class="acc">accuracy <b id="acc5">—</b></div>
+          <div class="accbar"><i id="bar5"></i></div>
+        </div>
+        <div class="plot">
+          <h4>(c) 5 layers + ReLU</h4>
+          <p class="arch">2→8→8→8→8→1 <br><span style="color:var(--good)">ReLU between each</span></p>
+          <canvas id="cv5r" width="300" height="300"></canvas>
+          <div class="acc">accuracy <b id="acc5r">—</b></div>
+          <div class="accbar"><i id="bar5r"></i></div>
+        </div>
+      </div>
+      <div class="epoch" id="epoch2">ready</div>
+
+      <div class="legend">
+        <span><i class="dot c0"></i> class 0 · inner</span>
+        <span><i class="dot c1"></i> class 1 · outer</span>
+        <span><i class="swatch s0"></i> predicted 0</span>
+        <span><i class="swatch s1"></i> predicted 1</span>
+      </div>
+
+      <div class="matpanel" id="matpanel">
+        <div class="mathead">Bonus — collapse the 5 linear weight matrices into one</div>
+        <pre id="matText">Train to compute the collapsed map…</pre>
+      </div>
+
+      <div class="callout">
+        <b>What to watch:</b> plots (a) and (b) land on the <b>same accuracy</b> and the <b>same straight line</b>
+        — depth changed nothing. Plot (c) uses the <i>identical</i> 5-layer shape but with ReLUs between the
+        layers, and it wraps the ring to ~100%. The bonus panel multiplies the five trained matrices and shows
+        the deep linear net is bit-for-bit equal to a single <b>1×2</b> matrix — proof that, without
+        nonlinearity, "deep" is a lie.
+      </div>
+    </div>
+  </section>
   <section class="part soon" id="p3"><span class="ptag">Part 3 · S1-3</span><h2>Coming next</h2>
     <p class="claim">Add this section when the Part 3 brief is shared.</p></section>
   <section class="part soon" id="p4"><span class="ptag">Part 4 · S1-4</span><h2>Coming next</h2>
@@ -342,9 +427,120 @@ el('hidden').addEventListener('input',e=>{ const H=e.target.value; el('hVal').te
 el('regen').addEventListener('click',()=>{ makeData(); resetView(); });
 el('train').addEventListener('click',train);
 
-// init
+// ============================================================
+//  PART 2 — depth without nonlinearity
+// ============================================================
+// Generic feed-forward net. dims e.g. [2,8,8,8,8,1].
+// relu=true -> ReLU after every layer except the last (which gets sigmoid).
+function Net(dims, relu){
+  this.dims=dims; this.relu=relu; this.W=[]; this.b=[];
+  for(let l=0;l<dims.length-1;l++){
+    const fin=dims[l], fout=dims[l+1];
+    const std = relu ? Math.sqrt(2/fin) : Math.sqrt(1/fin);
+    const Wl=[]; for(let o=0;o<fout;o++){ const row=[]; for(let i=0;i<fin;i++) row.push(gaussian()*std); Wl.push(row); }
+    this.W.push(Wl); this.b.push(new Array(fout).fill(0));
+  }
+}
+Net.prototype.forwardAll=function(x){
+  const a=[x.slice()], z=[null];
+  for(let l=0;l<this.W.length;l++){
+    const Wl=this.W[l], bl=this.b[l], inp=a[l], zl=new Array(Wl.length);
+    for(let o=0;o<Wl.length;o++){ let s=bl[o]; const row=Wl[o]; for(let i=0;i<row.length;i++) s+=row[i]*inp[i]; zl[o]=s; }
+    z.push(zl);
+    const last=l===this.W.length-1;
+    a.push(zl.map(v=>last?sigmoid(v):(this.relu?(v>0?v:0):v)));
+  }
+  return {a,z};
+};
+Net.prototype.fwd=function(x){ const {a}=this.forwardAll(x); return a[a.length-1][0]; };
+Net.prototype.step=function(X,y,lr,iters){
+  const L=this.W.length, n=X.length;
+  for(let e=0;e<iters;e++){
+    const gW=this.W.map(Wl=>Wl.map(r=>r.map(()=>0)));
+    const gb=this.b.map(bl=>bl.map(()=>0));
+    for(let s=0;s<n;s++){
+      const {a,z}=this.forwardAll(X[s]);
+      let delta=[a[L][0]-y[s]];
+      for(let l=L-1;l>=0;l--){
+        const Wl=this.W[l], inp=a[l];
+        for(let o=0;o<Wl.length;o++){ gb[l][o]+=delta[o]; const row=gW[l][o];
+          for(let i=0;i<inp.length;i++) row[i]+=delta[o]*inp[i]; }
+        if(l>0){
+          const prev=new Array(inp.length).fill(0);
+          for(let o=0;o<Wl.length;o++){ const row=Wl[o]; for(let i=0;i<inp.length;i++) prev[i]+=row[i]*delta[o]; }
+          const zl=z[l]; if(this.relu){ for(let i=0;i<prev.length;i++) if(zl[i]<=0) prev[i]=0; }
+          delta=prev;
+        }
+      }
+    }
+    for(let l=0;l<L;l++){ for(let o=0;o<this.W[l].length;o++){
+      for(let i=0;i<this.W[l][o].length;i++) this.W[l][o][i]-=lr*gW[l][o][i]/n;
+      this.b[l][o]-=lr*gb[l][o]/n; } }
+  }
+};
+function matmul(A,B){ const m=A.length,k=B.length,n=B[0].length; const C=Array.from({length:m},()=>new Array(n).fill(0));
+  for(let i=0;i<m;i++) for(let p=0;p<k;p++){ const a=A[i][p]; for(let j=0;j<n;j++) C[i][j]+=a*B[p][j]; } return C; }
+function matvec(A,x){ return A.map(row=>row.reduce((s,v,i)=>s+v*x[i],0)); }
+function collapse(net){
+  let Weff=net.W[0].map(r=>r.slice()), beff=net.b[0].slice();
+  for(let l=1;l<net.W.length;l++){ Weff=matmul(net.W[l],Weff); beff=matvec(net.W[l],beff).map((v,i)=>v+net.b[l][i]); }
+  return {Weff,beff};
+}
+
+const cv1=el('cv1'), cv5=el('cv5'), cv5r=el('cv5r');
+let data2=null, m1=null, m5=null, m5r=null, anim2=null;
+function makeData2(){ const noise=parseFloat(el('noise2').value);
+  const {X,y}=genData(300,noise); const {Xs,mx,my,sx,sy}=standardize(X);
+  data2={X,y,Xs,mx,my,sx,sy}; }
+function resetView2(){ m1=m5=m5r=null;
+  draw(cv1,null,data2); draw(cv5,null,data2); draw(cv5r,null,data2);
+  ['1','5','5r'].forEach(k=>{ el('acc'+k).textContent='—'; el('bar'+k).style.width='0%'; });
+  el('matText').textContent='Train to compute the collapsed map…';
+  el('epoch2').textContent='ready — press “Train all three”'; }
+function badge2(k,a){ el('acc'+k).textContent=(a*100).toFixed(1)+'%'; el('bar'+k).style.width=(a*100)+'%';
+  el('acc'+k).style.color=a>=0.9?'var(--good)':a>=0.7?'#facc15':'var(--bad)'; }
+function showCollapse(){
+  const {Weff,beff}=collapse(m5);
+  let maxd=0; for(let i=0;i<data2.Xs.length;i++){ const deep=m5.fwd(data2.Xs[i]);
+    const col=sigmoid(matvec(Weff,data2.Xs[i])[0]+beff[0]); maxd=Math.max(maxd,Math.abs(deep-col)); }
+  const w=Weff[0].map(v=>v.toFixed(4));
+  el('matText').textContent =
+`W₅(1×8) · W₄(8×8) · W₃(8×8) · W₂(8×8) · W₁(8×2)   =   W_eff (1×2)
+
+   W_eff = [ ${w[0]}, ${w[1]} ]      b_eff = ${beff[0].toFixed(4)}
+
+   max | deep-net output − collapsed-1-layer output |  =  ${maxd.toExponential(2)}
+   → the 5 linear layers are exactly one 1×2 linear map.`;
+}
+function train2(){
+  if(anim2) cancelAnimationFrame(anim2);
+  m1=new Net([2,1],false); m5=new Net([2,8,8,8,8,1],false); m5r=new Net([2,8,8,8,8,1],true);
+  const T1=400,T5=4000,T5r=4000, P1=8,P5=100,P5r=100;
+  let d1=0,d5=0,d5r=0;
+  el('train2').disabled=true; el('regen2').disabled=true;
+  function frame(){
+    if(d1<T1){ m1.step(data2.Xs,data2.y,0.5,P1); d1+=P1; }
+    if(d5<T5){ m5.step(data2.Xs,data2.y,0.15,P5); d5+=P5; }
+    if(d5r<T5r){ m5r.step(data2.Xs,data2.y,0.2,P5r); d5r+=P5r; }
+    draw(cv1,m1,data2); draw(cv5,m5,data2); draw(cv5r,m5r,data2);
+    badge2('1',accuracy(m1,data2.Xs,data2.y));
+    badge2('5',accuracy(m5,data2.Xs,data2.y));
+    badge2('5r',accuracy(m5r,data2.Xs,data2.y));
+    el('epoch2').textContent=`iters — 1-layer ${Math.min(d1,T1)}/${T1} · 5-linear ${Math.min(d5,T5)}/${T5} · 5+ReLU ${Math.min(d5r,T5r)}/${T5r}`;
+    if(d1<T1||d5<T5||d5r<T5r){ anim2=requestAnimationFrame(frame); }
+    else { showCollapse(); el('train2').disabled=false; el('regen2').disabled=false; el('epoch2').textContent+=' · done ✓'; }
+  }
+  anim2=requestAnimationFrame(frame);
+}
+el('noise2').addEventListener('input',e=>{ el('noiseVal2').textContent=parseFloat(e.target.value).toFixed(2);
+  makeData2(); resetView2(); });
+el('regen2').addEventListener('click',()=>{ makeData2(); resetView2(); });
+el('train2').addEventListener('click',train2);
+
+// init (both parts)
 makeData(); resetView();
-// auto-train once shortly after load so the money shot is the first thing seen
+makeData2(); resetView2();
+// auto-train Part 1 shortly after load so the money shot is the first thing seen
 setTimeout(train, 350);
 </script>
 </body>
