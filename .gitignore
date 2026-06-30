@@ -1,0 +1,41 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environments & secrets
+.env
+.env.*
+*.key
+
+# ML artifacts & data (usually too large for git)
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.gguf
+data/
+datasets/
+checkpoints/
+wandb/
+runs/
+logs/
+*.log
+
+# Editors / IDEs
+.vscode/
+.idea/
