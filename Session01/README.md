@@ -124,6 +124,43 @@ separated clusters; nearest-neighbour same-category **purity reaches 100%**. The
 
 ---
 
-## Part 4 — _to be added_
+## Part 4 — S1-4 · Memorization vs generalization, and data closes the gap
+
+> **Claim:** A high-capacity model on tiny data drives train loss to ~0 while held-out loss stays high; growing
+> the dataset closes the gap.
+>
+> **Build:** A learnable noisy classification with a held-out split; train an over-parameterized net at train
+> sizes 20, 200, 2000.
+>
+> **Proof:** The train/test gap is huge at 20 (train → 0, test bad) and shrinks as data grows — plot the
+> generalization gap vs dataset size. Ties straight into the course's "data is everything."
+
+**What this part asks for:** show that the train/test gap is a **data** problem, not a model problem. The same
+network is brilliant or useless depending only on how much data it gets — make overfitting visible, then make
+it disappear by adding data.
+
+**The concept it teaches:** an over-parameterized model (far more weights than examples) has enough capacity to
+**memorize** its training set. On 20 points it draws a boundary that loops around individual points — train
+accuracy ~100%, train loss ≈ 0 — but that boundary is meaningless elsewhere, so held-out loss is huge. The
+distance between train and test loss is the **generalization gap**. You don't close it with a cleverer
+architecture; you close it with more data, which forces the model to learn the underlying rule instead of the
+points. This is why a frontier training run is first and foremost a data-collection and data-quality effort —
+"data is everything."
+
+**What we built:**
+- A noisy two-ring task with **label noise** and a proper **held-out test split** drawn from the same
+  distribution.
+- The *same* over-parameterized net (`2→32→32→1`, ReLU) trained at N = 20, 200, 2000 (mini-batch SGD).
+- Three decision-boundary plots (the N=20 boundary fragments into islands around points; the N=2000 boundary
+  becomes a smooth ring), per-N train/test accuracy badges, and the headline **generalization-gap chart**:
+  held-out loss vs train loss across dataset size, with the gap shaded.
+
+**Result (reproducible):** the loss gap collapses monotonically as data grows — e.g. `~1.1` at N=20 (train
+loss ≈ 0, test loss ≈ 1.1), `~0.18` at N=200, `~0.0` at N=2000. Same model every time; only the amount of data
+changed.
+
+---
+
+_All four parts of Session 1 complete._
 
 _(Sections will be filled in as each part's brief is shared.)_

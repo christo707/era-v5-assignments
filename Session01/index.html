@@ -116,7 +116,7 @@
       <a href="#p1">Part 1 · Activations</a>
       <a href="#p2">Part 2 · Depth</a>
       <a href="#p3">Part 3 · Embeddings</a>
-      <a href="#p4">Part 4 · soon</a>
+      <a href="#p4">Part 4 · Data</a>
     </nav>
   </header>
 
@@ -345,8 +345,77 @@
       </div>
     </div>
   </section>
-  <section class="part soon" id="p4"><span class="ptag">Part 4 · S1-4</span><h2>Coming next</h2>
-    <p class="claim">Add this section when the Part 4 brief is shared.</p></section>
+  <section class="part" id="p4">
+    <span class="ptag">Part 4 · S1-4</span>
+    <h2>Memorization vs generalization — and data closes the gap</h2>
+    <p class="claim">A high-capacity model on tiny data drives train loss to ~0 while held-out loss stays high.
+      Growing the dataset closes the gap. This ties straight into the course's "data is everything."</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>The claim</h3>
+        <p>With only 20 examples an over-parameterized net <b>memorizes</b> — train loss → 0, but held-out loss
+          is terrible. It learned the points, not the pattern.</p>
+      </div>
+      <div class="card cc">
+        <h3>The concept</h3>
+        <p>The train/test <b>generalization gap</b> is the symptom of overfitting. It isn't fixed by a cleverer
+          model — it shrinks as you give it <b>more data</b>, forcing it to learn the rule instead.</p>
+      </div>
+      <div class="card cb">
+        <h3>What we built</h3>
+        <p>One noisy ring task with a held-out test split. We train the <i>same</i> over-parameterized net
+          (2→32→32→1) on 20, 200, and 2000 points and plot the gap vs dataset size.</p>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="controls">
+        <div class="btns" style="margin-left:0">
+          <button id="train4">▶ Run experiment (N = 20, 200, 2000)</button>
+        </div>
+      </div>
+
+      <div class="plots plots3">
+        <div class="plot">
+          <h4>N = 20</h4><p class="arch">tiny data → memorize</p>
+          <canvas id="cvN0" width="300" height="300"></canvas>
+          <div class="acc">train <b id="trA0">—</b> · test <b id="teA0">—</b></div>
+        </div>
+        <div class="plot">
+          <h4>N = 200</h4><p class="arch">more data</p>
+          <canvas id="cvN1" width="300" height="300"></canvas>
+          <div class="acc">train <b id="trA1">—</b> · test <b id="teA1">—</b></div>
+        </div>
+        <div class="plot">
+          <h4>N = 2000</h4><p class="arch">lots of data → generalize</p>
+          <canvas id="cvN2" width="300" height="300"></canvas>
+          <div class="acc">train <b id="trA2">—</b> · test <b id="teA2">—</b></div>
+        </div>
+      </div>
+
+      <div class="matpanel" style="margin-top:18px">
+        <div class="mathead">The proof — generalization gap (held-out loss − train loss) vs dataset size</div>
+        <canvas id="cvGap" width="880" height="300" style="width:100%;max-width:880px;background:#070b18;border-radius:8px"></canvas>
+      </div>
+      <div class="epoch" id="epoch4">ready — press “Run experiment”</div>
+
+      <div class="legend">
+        <span><i class="dot c0"></i> class 0 · inner</span>
+        <span><i class="dot c1"></i> class 1 · outer</span>
+        <span><i class="swatch" style="background:#22c55e"></i> train loss</span>
+        <span><i class="swatch" style="background:#f97316"></i> held-out (test) loss</span>
+      </div>
+
+      <div class="callout">
+        <b>What to watch:</b> at <b>N = 20</b> the boundary breaks into little islands that hug individual
+        points — train accuracy ~100%, train loss ≈ 0 — but the held-out loss is huge: pure memorization. As N
+        grows the boundary settles into the true ring and the train/test gap collapses toward zero. Same model
+        every time; <b>only the amount of data changed.</b> That's why the run that matters in this course is a
+        data problem first.
+      </div>
+    </div>
+  </section>
 
   <footer>
     Built for ERA V5 · Session 1 · by <a class="inline" href="https://github.com/christo707/era-v5-assignments">christo707</a>.
@@ -726,10 +795,111 @@ function train3(){
 el('newcorpus').addEventListener('click',()=>{ newCorpus(); resetView3(); });
 el('train3').addEventListener('click',train3);
 
+// ============================================================
+//  PART 4 — memorization vs generalization; data closes the gap
+// ============================================================
+// minibatch SGD on the generic Net (Part 2), used for the over-parameterized model here
+Net.prototype.sgd=function(X,y,lr,epochs,bs){
+  const L=this.W.length, n=X.length;
+  for(let ep=0;ep<epochs;ep++){
+    const order=[...Array(n).keys()];
+    for(let i=n-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=order[i];order[i]=order[j];order[j]=t; }
+    for(let b0=0;b0<n;b0+=bs){ const batch=order.slice(b0,b0+bs); const m=batch.length;
+      const gW=this.W.map(Wl=>Wl.map(r=>r.map(()=>0))), gb=this.b.map(bl=>bl.map(()=>0));
+      for(const s of batch){ const {a,z}=this.forwardAll(X[s]); let delta=[a[L][0]-y[s]];
+        for(let l=L-1;l>=0;l--){ const Wl=this.W[l],inp=a[l];
+          for(let o=0;o<Wl.length;o++){ gb[l][o]+=delta[o]; const row=gW[l][o]; for(let i=0;i<inp.length;i++) row[i]+=delta[o]*inp[i]; }
+          if(l>0){ const prev=new Array(inp.length).fill(0);
+            for(let o=0;o<Wl.length;o++){ const row=Wl[o]; for(let i=0;i<inp.length;i++) prev[i]+=row[i]*delta[o]; }
+            const zl=z[l]; for(let i=0;i<prev.length;i++) if(zl[i]<=0) prev[i]=0; delta=prev; } } }
+      for(let l=0;l<L;l++){ for(let o=0;o<this.W[l].length;o++){
+        for(let i=0;i<this.W[l][o].length;i++) this.W[l][o][i]-=lr*gW[l][o][i]/m; this.b[l][o]-=lr*gb[l][o]/m; } }
+    }
+  }
+};
+function bceLoss(net,X,y){ let s=0; for(let i=0;i<X.length;i++){ const p=Math.min(1-1e-7,Math.max(1e-7,net.fwd(X[i])));
+  s+=-(y[i]*Math.log(p)+(1-y[i])*Math.log(1-p)); } return s/X.length; }
+
+const SX4=1.6, SY4=1.6, POS4=0.22, LN4=0.10;
+function genRings(n){ const X=[],y=[]; for(let i=0;i<n;i++){ const inner=Math.random()<0.5; const base=inner?1.0:2.2;
+  const ang=Math.random()*2*Math.PI, r=base+gaussian()*POS4; X.push([Math.cos(ang)*r, Math.sin(ang)*r]);
+  let lab=inner?0:1; if(Math.random()<LN4) lab=1-lab; y.push(lab); } return {X,y}; }
+function pack(d){ return {X:d.X, y:d.y, Xs:d.X.map(p=>[p[0]/SX4,p[1]/SY4]), mx:0,my:0,sx:SX4,sy:SY4}; }
+
+const SIZES=[20,200,2000], EPO=[1000,400,120];
+const cvN=[el('cvN0'),el('cvN1'),el('cvN2')];
+let test4set=null, nets4=null, anim4=null, results4=null;
+function drawGap(){
+  const cv=el('cvGap'), ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#070b18'; ctx.fillRect(0,0,W,H);
+  if(!results4 || results4.some(r=>!r)) return;
+  const padL=64,padR=24,padT=24,padB=46;
+  let maxL=0; for(const r of results4) maxL=Math.max(maxL, r.teLoss, r.trLoss);
+  maxL=Math.max(maxL*1.1, 0.2);
+  const xs=SIZES.map((_,i)=>padL+(W-padL-padR)*(i/(SIZES.length-1)));
+  const Y=v=>H-padB-(v/maxL)*(H-padT-padB);
+  // grid + axes
+  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.lineWidth=1;
+  for(let g=0;g<=4;g++){ const v=maxL*g/4, y=Y(v); ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
+    ctx.fillStyle='#9aa7c2'; ctx.font='11px ui-monospace,Menlo,monospace'; ctx.fillText(v.toFixed(2), 8, y+4); }
+  ctx.fillStyle='#9aa7c2'; ctx.font='12px ui-monospace,Menlo,monospace';
+  for(let i=0;i<SIZES.length;i++) ctx.fillText('N='+SIZES[i], xs[i]-18, H-padB+22);
+  ctx.fillText('loss', 8, padT-8);
+  // shaded gap between train and test loss
+  ctx.beginPath(); ctx.moveTo(xs[0],Y(results4[0].teLoss));
+  for(let i=0;i<SIZES.length;i++) ctx.lineTo(xs[i],Y(results4[i].teLoss));
+  for(let i=SIZES.length-1;i>=0;i--) ctx.lineTo(xs[i],Y(results4[i].trLoss));
+  ctx.closePath(); ctx.fillStyle='rgba(249,115,22,.16)'; ctx.fill();
+  function line(key,color){ ctx.beginPath(); for(let i=0;i<SIZES.length;i++){ const y=Y(results4[i][key]);
+    if(i===0) ctx.moveTo(xs[i],y); else ctx.lineTo(xs[i],y); } ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+    for(let i=0;i<SIZES.length;i++){ ctx.beginPath(); ctx.arc(xs[i],Y(results4[i][key]),4,0,7); ctx.fillStyle=color; ctx.fill(); } }
+  line('teLoss','#f97316'); line('trLoss','#22c55e');
+  // gap labels
+  ctx.font='12px -apple-system,sans-serif';
+  for(let i=0;i<SIZES.length;i++){ const gap=results4[i].teLoss-results4[i].trLoss;
+    const ymid=(Y(results4[i].teLoss)+Y(results4[i].trLoss))/2;
+    ctx.fillStyle='#e8edf7'; ctx.fillText('gap '+gap.toFixed(2), xs[i]+(i===SIZES.length-1?-66:8), ymid); }
+}
+function resetView4(){ nets4=null; results4=[null,null,null];
+  test4set=pack(genRings(3000));
+  for(let i=0;i<3;i++){ const d=pack(genRings(SIZES[i])); cvN[i]._data=d; draw(cvN[i],null,d);
+    el('trA'+i).textContent='—'; el('teA'+i).textContent='—'; }
+  drawGap(); el('epoch4').textContent='ready — press “Run experiment”'; }
+function badge4(i){ const r=results4[i]; if(!r) return;
+  el('trA'+i).textContent=(r.trAcc*100).toFixed(0)+'%'; el('teA'+i).textContent=(r.teAcc*100).toFixed(0)+'%';
+  el('trA'+i).style.color = r.trAcc>=0.9?'var(--good)':'#facc15';
+  el('teA'+i).style.color = r.teAcc>=0.85?'var(--good)':r.teAcc>=0.75?'#facc15':'var(--bad)'; }
+function trainOne(i, done){ // returns true when finished
+  const net=nets4[i], d=cvN[i]._data, PER = i===0?40:i===1?20:4;
+  net.sgd(d.Xs,d.y,0.1,PER,32); done.e+=PER;
+  draw(cvN[i],net,d);
+  results4[i]={ trAcc:accuracy(net,d.Xs,d.y), teAcc:accuracy(net,test4set.Xs,test4set.y),
+                trLoss:bceLoss(net,d.Xs,d.y), teLoss:bceLoss(net,test4set.Xs,test4set.y) };
+  badge4(i);
+  return done.e>=EPO[i];
+}
+function train4(){
+  if(anim4) cancelAnimationFrame(anim4);
+  resetView4();
+  nets4=SIZES.map(()=>new Net([2,32,32,1],true));
+  el('train4').disabled=true;
+  let i=0, done={e:0};
+  function frame(){
+    const fin=trainOne(i,done);
+    el('epoch4').textContent=`training N=${SIZES[i]} … epoch ${Math.min(done.e,EPO[i])}/${EPO[i]}`;
+    if(fin){ drawGap(); i++; done={e:0}; }
+    if(i<SIZES.length){ anim4=requestAnimationFrame(frame); }
+    else { drawGap(); el('train4').disabled=false; el('epoch4').textContent='done ✓ — gap shrinks as N grows'; }
+  }
+  anim4=requestAnimationFrame(frame);
+}
+el('train4').addEventListener('click',train4);
+
 // init (all parts)
 makeData(); resetView();
 makeData2(); resetView2();
 newCorpus(); resetView3();
+resetView4();
 // auto-train Part 1 shortly after load so the money shot is the first thing seen
 setTimeout(train, 350);
 </script>
