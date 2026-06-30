@@ -59,6 +59,20 @@
   .mathead{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
   .matpanel pre{margin:0;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;line-height:1.7;color:var(--ink);
     white-space:pre-wrap;word-break:break-word}
+  .grammar{background:#0a1024;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px;margin-bottom:14px}
+  .grammar .rule{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:#16213f;
+    border:1px solid var(--line);border-radius:8px;padding:3px 9px;margin:8px 8px 0 0;color:var(--ink)}
+  .grammar code{font-family:ui-monospace,Menlo,monospace;background:#16213f;padding:1px 5px;border-radius:5px}
+  .grammar .examples{margin-top:10px;color:var(--muted);font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+  .embed-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:6px}
+  .nnpanel{flex:1 1 220px;background:#0a1024;border:1px solid var(--line);border-radius:12px;padding:14px;min-width:220px}
+  .nnpanel h4{margin:0 0 2px;font-size:15px}
+  .nnpanel table{width:100%;border-collapse:collapse;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;margin-top:8px}
+  .nnpanel td{padding:3px 4px}
+  .nnpanel td.ok{color:var(--good)} .nnpanel td.bad{color:var(--bad)}
+  .nnpanel .purity{margin-top:10px;font-size:13.5px;color:var(--muted)}
+  .nnpanel .purity b{color:var(--good)}
+  code{font-family:ui-monospace,Menlo,monospace}
   .plot{background:#0a1024;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
   .plot h4{margin:0 0 2px;font-size:15px}
   .plot .arch{font-size:12px;color:var(--muted);margin:0 0 10px;font-family:ui-monospace,Menlo,monospace}
@@ -101,7 +115,7 @@
     <nav class="toc">
       <a href="#p1">Part 1 · Activations</a>
       <a href="#p2">Part 2 · Depth</a>
-      <a href="#p3">Part 3 · soon</a>
+      <a href="#p3">Part 3 · Embeddings</a>
       <a href="#p4">Part 4 · soon</a>
     </nav>
   </header>
@@ -263,8 +277,74 @@
       </div>
     </div>
   </section>
-  <section class="part soon" id="p3"><span class="ptag">Part 3 · S1-3</span><h2>Coming next</h2>
-    <p class="claim">Add this section when the Part 3 brief is shared.</p></section>
+  <section class="part" id="p3">
+    <span class="ptag">Part 3 · S1-3</span>
+    <h2>Embeddings learn similarity from nothing but next-token</h2>
+    <p class="claim">Trained only to predict the next token in a tiny synthetic grammar, the embedding table
+      clusters related tokens — even though similarity was never supplied.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>The claim</h3>
+        <p>Nobody tells the model "cat is like dog." Yet because same-category tokens share the same
+          next-token distribution, the embedding table sorts them into groups on its own.</p>
+      </div>
+      <div class="card cc">
+        <h3>The concept</h3>
+        <p>To predict the next token well, tokens that behave the same must produce the same output — so the
+          optimizer pushes their <b>embeddings</b> together. Meaning <i>emerges</i> from prediction. This is
+          why word/token embeddings work at all.</p>
+      </div>
+      <div class="card cb">
+        <h3>What we built</h3>
+        <p>A toy language — animals <code>cat dog cow</code>, verbs <code>eat chase see</code>, fruits
+          <code>apple mango</code> — with category rules. A tiny <code>embed → softmax</code> next-token model,
+          then a 2D PCA plot of the learned 16-D embeddings.</p>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="grammar">
+        <b>The grammar</b> (category transitions — every sentence is a walk through these):
+        <span class="rule">animal → verb</span><span class="rule">verb → animal / fruit</span><span class="rule">fruit → animal</span>
+        <div class="examples" id="examples">e.g. cat chase dog · dog eat apple · apple see cow …</div>
+      </div>
+      <div class="controls">
+        <div class="btns" style="margin-left:0">
+          <button class="ghost" id="newcorpus">New corpus</button>
+          <button id="train3">▶ Train next-token model</button>
+        </div>
+      </div>
+
+      <div class="embed-row">
+        <div class="plot" style="flex:1 1 360px">
+          <h4>Learned embeddings → 2D (PCA)</h4>
+          <p class="arch">16-dim embedding table, projected to its top 2 principal components</p>
+          <canvas id="cvE" width="440" height="360"></canvas>
+        </div>
+        <div class="nnpanel">
+          <h4>Nearest neighbour</h4>
+          <p class="arch">closest token in 16-D embedding space</p>
+          <table id="nnTable"><tbody></tbody></table>
+          <div class="purity">same-category purity: <b id="purity">—</b></div>
+        </div>
+      </div>
+      <div class="epoch" id="epoch3">ready</div>
+
+      <div class="legend">
+        <span><i class="dot" style="background:#3b82f6"></i> animal</span>
+        <span><i class="dot" style="background:#22c55e"></i> verb</span>
+        <span><i class="dot" style="background:#f97316"></i> fruit</span>
+      </div>
+
+      <div class="callout">
+        <b>What to watch:</b> the embeddings start as a random blob. As the model learns to predict the next
+        token, same-category words drift together into three tight clusters and every token's nearest neighbour
+        becomes a same-category token (~100% purity). The only training signal was "what comes next" — similarity
+        was never given. <b>Emergent clustering is the proof.</b>
+      </div>
+    </div>
+  </section>
   <section class="part soon" id="p4"><span class="ptag">Part 4 · S1-4</span><h2>Coming next</h2>
     <p class="claim">Add this section when the Part 4 brief is shared.</p></section>
 
@@ -537,9 +617,119 @@ el('noise2').addEventListener('input',e=>{ el('noiseVal2').textContent=parseFloa
 el('regen2').addEventListener('click',()=>{ makeData2(); resetView2(); });
 el('train2').addEventListener('click',train2);
 
-// init (both parts)
+// ============================================================
+//  PART 3 — embeddings learn similarity from next-token
+// ============================================================
+const CATS={ animal:['cat','dog','cow'], verb:['eat','chase','see'], fruit:['apple','mango'] };
+const CATCOLOR={ animal:'#3b82f6', verb:'#22c55e', fruit:'#f97316' };
+const TOK=[], CATOF={}; for(const c in CATS) for(const t of CATS[c]){ TOK.push(t); CATOF[t]=c; }
+const VV=TOK.length, IDX=Object.fromEntries(TOK.map((t,i)=>[t,i]));
+const D3=16;
+
+function nextCat(c){ if(c==='animal')return 'verb'; if(c==='verb')return Math.random()<0.5?'animal':'fruit'; return 'animal'; }
+function pickTok(c){ const a=CATS[c]; return a[Math.floor(Math.random()*a.length)]; }
+function makePairs(steps){ const pairs=[]; let cat='animal',tok=pickTok(cat);
+  for(let i=0;i<steps;i++){ const nc=nextCat(cat), nt=pickTok(nc); pairs.push([IDX[tok],IDX[nt]]); cat=nc; tok=nt; } return pairs; }
+function sampleSentence(len){ let cat='animal',tok=pickTok(cat); const out=[tok];
+  for(let i=1;i<len;i++){ cat=nextCat(cat); tok=pickTok(cat); out.push(tok); } return out.join(' '); }
+
+function softmaxV(z){ const m=Math.max(...z); const e=z.map(v=>Math.exp(v-m)); const s=e.reduce((a,c)=>a+c,0); return e.map(v=>v/s); }
+function initEmb(){ const E=[],W=[],b=new Array(VV).fill(0);
+  for(let i=0;i<VV;i++){ const r=[]; for(let d=0;d<D3;d++) r.push(gaussian()*0.3); E.push(r); }
+  for(let d=0;d<D3;d++){ const r=[]; for(let j=0;j<VV;j++) r.push(gaussian()*0.3); W.push(r); }
+  return {E,W,b}; }
+function trainEmb(m,pairs,lr,epochs){ const n=pairs.length;
+  for(let ep=0;ep<epochs;ep++){
+    const gE=m.E.map(r=>r.map(()=>0)), gW=m.W.map(r=>r.map(()=>0)), gb=new Array(VV).fill(0);
+    for(const [c,t] of pairs){ const emb=m.E[c]; const z=new Array(VV);
+      for(let j=0;j<VV;j++){ let s=m.b[j]; for(let d=0;d<D3;d++) s+=emb[d]*m.W[d][j]; z[j]=s; }
+      const p=softmaxV(z); const dz=p.slice(); dz[t]-=1;
+      for(let j=0;j<VV;j++){ gb[j]+=dz[j]; for(let d=0;d<D3;d++) gW[d][j]+=emb[d]*dz[j]; }
+      for(let d=0;d<D3;d++){ let g=0; for(let j=0;j<VV;j++) g+=m.W[d][j]*dz[j]; gE[c][d]+=g; } }
+    for(let i=0;i<VV;i++){ for(let d=0;d<D3;d++) m.E[i][d]-=lr*gE[i][d]/n; m.b[i]-=lr*gb[i]/n; }
+    for(let d=0;d<D3;d++) for(let j=0;j<VV;j++) m.W[d][j]-=lr*gW[d][j]/n; }
+}
+function pca2(rows){ const n=rows.length,d=rows[0].length; const mean=new Array(d).fill(0);
+  for(const r of rows) for(let j=0;j<d;j++) mean[j]+=r[j]; for(let j=0;j<d;j++) mean[j]/=n;
+  const X=rows.map(r=>r.map((v,j)=>v-mean[j]));
+  const C=Array.from({length:d},()=>new Array(d).fill(0));
+  for(const r of X) for(let a=0;a<d;a++) for(let bb=0;bb<d;bb++) C[a][bb]+=r[a]*r[bb];
+  for(let a=0;a<d;a++) for(let bb=0;bb<d;bb++) C[a][bb]/=n;
+  function pw(M){ let v=new Array(d).fill(0).map(()=>gaussian());
+    for(let it=0;it<120;it++){ const nv=new Array(d).fill(0);
+      for(let a=0;a<d;a++){ let s=0; for(let bb=0;bb<d;bb++) s+=M[a][bb]*v[bb]; nv[a]=s; }
+      const nm=Math.hypot(...nv)||1; v=nv.map(x=>x/nm); }
+    let lam=0; const Mv=new Array(d).fill(0); for(let a=0;a<d;a++){let s=0;for(let bb=0;bb<d;bb++)s+=M[a][bb]*v[bb];Mv[a]=s;}
+    for(let a=0;a<d;a++) lam+=v[a]*Mv[a]; return {v,lam}; }
+  const e1=pw(C); const C2=C.map((row,a)=>row.map((val,bb)=>val-e1.lam*e1.v[a]*e1.v[bb])); const e2=pw(C2);
+  return X.map(r=>[r.reduce((s,v,j)=>s+v*e1.v[j],0), r.reduce((s,v,j)=>s+v*e2.v[j],0)]);
+}
+
+const cvE=el('cvE');
+let m3=null, pairs3=null, anim3=null, prevP=null;
+function newCorpus(){ pairs3=makePairs(3000); el('examples').textContent='e.g. '+[6,6,7].map(L=>sampleSentence(L)).join(' · ')+' …'; }
+function nnAndPurity(){
+  let same=0; const rows=[];
+  for(let i=0;i<VV;i++){ let best=-1,bd=Infinity;
+    for(let j=0;j<VV;j++){ if(j===i)continue; let s=0; for(let d=0;d<D3;d++) s+=(m3.E[i][d]-m3.E[j][d])**2; if(s<bd){bd=s;best=j;} }
+    const ok=CATOF[TOK[i]]===CATOF[TOK[best]]; if(ok)same++; rows.push([TOK[i],TOK[best],ok]); }
+  return {rows, purity:same/VV};
+}
+function drawEmb(){
+  const ctx=cvE.getContext('2d'), W=cvE.width, H=cvE.height;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='#070b18'; ctx.fillRect(0,0,W,H);
+  if(!m3){ return; }
+  let P=pca2(m3.E);
+  // sign-stabilise vs previous frame to keep the animation from flipping
+  if(prevP){ let sx=0,sy=0; for(let i=0;i<VV;i++){ sx+=P[i][0]*prevP[i][0]; sy+=P[i][1]*prevP[i][1]; }
+    if(sx<0) P.forEach(p=>p[0]=-p[0]); if(sy<0) P.forEach(p=>p[1]=-p[1]); }
+  prevP=P;
+  // autoscale to canvas with padding
+  let minx=Infinity,maxx=-Infinity,miny=Infinity,maxy=-Infinity;
+  for(const p of P){ minx=Math.min(minx,p[0]);maxx=Math.max(maxx,p[0]);miny=Math.min(miny,p[1]);maxy=Math.max(maxy,p[1]); }
+  const pad=46; const sx=(W-2*pad)/((maxx-minx)||1), sy=(H-2*pad)/((maxy-miny)||1);
+  const X=p=>pad+(p[0]-minx)*sx, Y=p=>H-pad-(p[1]-miny)*sy;
+  // axes
+  ctx.strokeStyle='rgba(255,255,255,.06)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,H/2); ctx.lineTo(W-pad,H/2); ctx.moveTo(W/2,pad); ctx.lineTo(W/2,H-pad); ctx.stroke();
+  for(let i=0;i<VV;i++){ const x=X(P[i]),y=Y(P[i]); const col=CATCOLOR[CATOF[TOK[i]]];
+    ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fillStyle=col; ctx.fill();
+    ctx.lineWidth=1.5; ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.stroke();
+    ctx.fillStyle='#e8edf7'; ctx.font='13px ui-monospace,Menlo,monospace';
+    ctx.fillText(TOK[i], x+9, y+4); }
+}
+function renderNN(){
+  const {rows,purity}=nnAndPurity();
+  const tb=el('nnTable').querySelector('tbody'); tb.innerHTML='';
+  for(const [a,b,ok] of rows){ const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${a}</td><td style="color:var(--muted)">→</td><td class="${ok?'ok':'bad'}">${b} ${ok?'✓':'✗'}</td>`; tb.appendChild(tr); }
+  el('purity').textContent=(purity*100).toFixed(0)+'%';
+  el('purity').style.color = purity>=0.99?'var(--good)':purity>=0.7?'#facc15':'var(--bad)';
+}
+function resetView3(){ m3=null; prevP=null; drawEmb();
+  el('nnTable').querySelector('tbody').innerHTML=''; el('purity').textContent='—';
+  el('epoch3').textContent='ready — press “Train next-token model”'; }
+function train3(){
+  if(anim3) cancelAnimationFrame(anim3);
+  if(!pairs3) newCorpus();
+  m3=initEmb(); prevP=null;
+  const TOTAL=1500, PER=25; let done=0;
+  el('train3').disabled=true; el('newcorpus').disabled=true;
+  function frame(){ trainEmb(m3,pairs3,1.0,PER); done+=PER;
+    drawEmb(); renderNN();
+    el('epoch3').textContent=`epoch ${Math.min(done,TOTAL)}/${TOTAL}`;
+    if(done<TOTAL){ anim3=requestAnimationFrame(frame); }
+    else { el('train3').disabled=false; el('newcorpus').disabled=false; el('epoch3').textContent+=' · done ✓'; }
+  }
+  anim3=requestAnimationFrame(frame);
+}
+el('newcorpus').addEventListener('click',()=>{ newCorpus(); resetView3(); });
+el('train3').addEventListener('click',train3);
+
+// init (all parts)
 makeData(); resetView();
 makeData2(); resetView2();
+newCorpus(); resetView3();
 // auto-train Part 1 shortly after load so the money shot is the first thing seen
 setTimeout(train, 350);
 </script>

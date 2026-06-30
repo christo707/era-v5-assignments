@@ -87,7 +87,43 @@ same straight line**; the 5+ReLU model reaches **~99–100%**. The collapse chec
 
 ---
 
-## Part 3 — _to be added_
+## Part 3 — S1-3 · Embeddings learn similarity from nothing but next-token
+
+> **Claim:** Trained only to predict the next token in a tiny synthetic grammar, the embedding table clusters
+> related tokens — though similarity was never supplied.
+>
+> **Build:** A toy language with categories (animals: cat dog cow; fruits: apple mango; verbs: eat chase see)
+> and templates so same-category tokens share next-token distributions. Train a tiny embedding → softmax
+> next-token model.
+>
+> **Proof:** Project the learned embeddings to 2D and plot — same-category tokens land together; nearest
+> neighbours are same-category. Emergent clustering = the proof.
+
+**What this part asks for:** demonstrate that *meaning is a side-effect of prediction*. The model is never told
+which tokens are similar — it only ever predicts the next token — yet useful structure (related tokens close
+together) appears on its own.
+
+**The concept it teaches:** the model is `embedding(token) → softmax → next-token distribution`. The only
+lever it has is each token's embedding vector. Two tokens followed by the same things (e.g. `cat`, `dog` — both
+always followed by a verb) must produce the same output distribution, and the only way to do that is to give
+them nearly identical embeddings. So the optimizer silently pushes same-category tokens together. This is
+exactly why word/token embeddings (word2vec, and the embedding layer at the bottom of every transformer)
+encode similarity — it's forced by the prediction objective, not supplied.
+
+**What we built:**
+- A toy language: animals `cat dog cow`, verbs `eat chase see`, fruits `apple mango`, with category
+  transitions (`animal → verb`, `verb → animal/fruit`, `fruit → animal`) so same-category tokens share
+  next-token distributions.
+- A tiny `embed(16-dim) → softmax` next-token model, trained live with manual backprop.
+- A **2D PCA projection** of the learned 16-D embedding table (animated as training proceeds), a live
+  **nearest-neighbour table**, and a same-category **purity** score.
+
+**Result (reproducible):** the embeddings start as a random blob and sort themselves into three tight, clearly
+separated clusters; nearest-neighbour same-category **purity reaches 100%**. The only training signal was
+"what comes next" — similarity was never given.
+
+---
+
 ## Part 4 — _to be added_
 
 _(Sections will be filled in as each part's brief is shared.)_
