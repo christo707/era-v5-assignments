@@ -20,8 +20,26 @@
   .wrap{max-width:980px;margin:0 auto;padding:40px 20px 80px}
   header.page{margin-bottom:28px}
   .eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:12px;color:var(--accent);font-weight:700}
-  h1{font-size:34px;line-height:1.15;margin:8px 0 6px}
-  .sub{color:var(--muted);font-size:18px;margin:0}
+  .eyebrow a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent}
+  .eyebrow a:hover{border-color:var(--accent)}
+  h1{font-size:36px;line-height:1.12;margin:8px 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--ink);font-size:18px;margin:0;max-width:70ch}
+  .sub b{color:#fff}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+  .meta span{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);
+    background:var(--panel);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+  .meta span b{color:var(--ink);font-weight:600}
+  .overview{margin:22px 0 0;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 4px}
+  .overview a{display:flex;gap:12px;align-items:baseline;text-decoration:none;color:var(--ink);
+    padding:11px 16px;border-radius:10px}
+  .overview a:hover{background:var(--panel2)}
+  .overview a + a{border-top:1px solid var(--line)}
+  .overview .n{flex:0 0 auto;font-size:12px;font-weight:700;color:#0b1020;background:var(--accent);
+    border-radius:7px;padding:2px 8px;letter-spacing:.03em;transform:translateY(-1px)}
+  .overview .ttl{font-weight:600}
+  .overview .desc{color:var(--muted);font-size:14px}
+  .hint{margin:16px 0 0;font-size:14px;color:var(--muted)}
+  .hint b{color:var(--ink)}
   .toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
   .toc a{font-size:13px;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--line);
     padding:6px 12px;border-radius:999px}
@@ -109,15 +127,32 @@
 <body>
 <div class="wrap">
   <header class="page">
-    <div class="eyebrow">ERA V5 · Session 1 — Transformer Foundations</div>
+    <div class="eyebrow"><a href="https://theschoolof.ai/">The School of AI</a> · ERA V5 · Session 1 — Transformer Foundations</div>
     <h1>Why Neural Networks Work</h1>
-    <p class="sub">Four small, self-contained experiments that build the intuition behind every deep network — starting with the single idea that makes them more than glorified linear regression.</p>
-    <nav class="toc">
-      <a href="#p1">Part 1 · Activations</a>
-      <a href="#p2">Part 2 · Depth</a>
-      <a href="#p3">Part 3 · Embeddings</a>
-      <a href="#p4">Part 4 · Data</a>
-    </nav>
+    <p class="sub">Four tiny experiments that build the core intuitions behind every deep network and large
+      language model. Each one <b>trains a real model live in your browser</b> — no setup, no libraries — and
+      ends in a single picture that proves the point.</p>
+
+    <div class="meta">
+      <span>🎓 <b>ERA V5</b> · School of AI</span>
+      <span>⚡ Runs entirely in your browser</span>
+      <span>🧪 4 interactive experiments</span>
+      <span>📦 No dependencies · plain JS</span>
+    </div>
+
+    <div class="overview">
+      <a href="#p1"><span class="n">1</span><span><span class="ttl">Activations exist for a reason</span>
+        <span class="desc"> — why a nonlinearity is what lets a network bend a boundary.</span></span></a>
+      <a href="#p2"><span class="n">2</span><span><span class="ttl">Depth without nonlinearity is a lie</span>
+        <span class="desc"> — five stacked linear layers are secretly just one.</span></span></a>
+      <a href="#p3"><span class="n">3</span><span><span class="ttl">Embeddings learn similarity for free</span>
+        <span class="desc"> — meaning emerges from predicting the next token alone.</span></span></a>
+      <a href="#p4"><span class="n">4</span><span><span class="ttl">Data closes the generalization gap</span>
+        <span class="desc"> — the same model memorizes on tiny data and generalizes on lots.</span></span></a>
+    </div>
+
+    <p class="hint">New here? Start at Part 1 and hit <b>▶ Train</b> in each experiment to watch it learn. Read
+      top to bottom — each part builds on the last.</p>
   </header>
 
   <!-- ===================== PART 1 ===================== -->
@@ -418,7 +453,8 @@
   </section>
 
   <footer>
-    Built for ERA V5 · Session 1 · by <a class="inline" href="https://github.com/christo707/era-v5-assignments">christo707</a>.
+    Built for the <a class="inline" href="https://theschoolof.ai/">ERA course by The School of AI</a> ·
+    Session 1 · by <a class="inline" href="https://github.com/christo707/era-v5-assignments">christo707</a>.<br>
     Everything runs client-side — no servers, no libraries.
   </footer>
 </div>
