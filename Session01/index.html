@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ERA V5 · Session 1 — Why Neural Networks Work</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a2f; --panel2:#0f1729; --ink:#e8edf7; --muted:#9aa7c2;
+    --line:#243153; --accent:#7c9cff; --c0:#2563eb; --c1:#f97316; --good:#22c55e; --bad:#ef4444;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:radial-gradient(1200px 700px at 70% -10%, #16213f 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:980px;margin:0 auto;padding:40px 20px 80px}
+  header.page{margin-bottom:28px}
+  .eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:12px;color:var(--accent);font-weight:700}
+  h1{font-size:34px;line-height:1.15;margin:8px 0 6px}
+  .sub{color:var(--muted);font-size:18px;margin:0}
+  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+  .toc a{font-size:13px;color:var(--ink);text-decoration:none;background:var(--panel);border:1px solid var(--line);
+    padding:6px 12px;border-radius:999px}
+  .toc a:hover{border-color:var(--accent)}
+
+  section.part{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px;margin:28px 0;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+  .ptag{display:inline-block;font-size:12px;font-weight:700;color:#0b1020;background:var(--accent);
+    padding:3px 10px;border-radius:999px;letter-spacing:.04em}
+  h2{font-size:24px;margin:14px 0 4px}
+  .claim{color:var(--muted);font-style:italic;margin:0 0 18px;border-left:3px solid var(--accent);padding-left:14px}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 8px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+  .card p{margin:0;font-size:14.5px;color:var(--ink)}
+  .card.cc h3{color:#ffd27d}
+  .card.cb h3{color:#7ee0b8}
+
+  .widget{margin-top:22px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;margin-bottom:8px}
+  .ctl{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+  .ctl input[type=range]{width:160px;accent-color:var(--accent)}
+  .ctl .val{color:var(--ink);font-weight:600}
+  .btns{display:flex;gap:10px;margin-left:auto}
+  button{font:inherit;font-size:14px;font-weight:600;color:#0b1020;background:var(--accent);border:0;
+    padding:10px 16px;border-radius:10px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button:hover:not(:disabled){filter:brightness(1.07)}
+
+  .plots{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  .plot{background:#0a1024;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .plot h4{margin:0 0 2px;font-size:15px}
+  .plot .arch{font-size:12px;color:var(--muted);margin:0 0 10px;font-family:ui-monospace,Menlo,monospace}
+  canvas{width:100%;max-width:320px;height:auto;border-radius:8px;background:#070b18;display:block;margin:0 auto;
+    image-rendering:auto}
+  .acc{margin-top:10px;font-size:14px}
+  .acc b{font-size:22px}
+  .accbar{height:8px;border-radius:999px;background:#1b2645;overflow:hidden;margin-top:6px}
+  .accbar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f97316,#22c55e);transition:width .2s}
+
+  .legend{display:flex;gap:18px;justify-content:center;margin-top:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:12px;height:12px;border-radius:50%;border:2px solid #fff}
+  .dot.c0{background:var(--c0)} .dot.c1{background:var(--c1)}
+  .swatch{width:14px;height:14px;border-radius:3px}
+  .swatch.s0{background:rgba(37,99,235,.45)} .swatch.s1{background:rgba(249,115,22,.45)}
+
+  .callout{margin-top:16px;background:rgba(124,156,255,.08);border:1px solid var(--line);border-left:3px solid var(--accent);
+    border-radius:10px;padding:14px 16px;font-size:14.5px}
+  .callout b{color:var(--ink)}
+  .epoch{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+
+  .soon{opacity:.75}
+  .soon h2{color:var(--muted)}
+  footer{color:var(--muted);font-size:13px;text-align:center;margin-top:40px}
+  a.inline{color:var(--accent)}
+  @media (max-width:720px){
+    .cards{grid-template-columns:1fr}
+    .plots{grid-template-columns:1fr}
+    h1{font-size:27px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <div class="eyebrow">ERA V5 · Session 1 — Transformer Foundations</div>
+    <h1>Why Neural Networks Work</h1>
+    <p class="sub">Four small, self-contained experiments that build the intuition behind every deep network — starting with the single idea that makes them more than glorified linear regression.</p>
+    <nav class="toc">
+      <a href="#p1">Part 1 · Activations</a>
+      <a href="#p2">Part 2 · soon</a>
+      <a href="#p3">Part 3 · soon</a>
+      <a href="#p4">Part 4 · soon</a>
+    </nav>
+  </header>
+
+  <!-- ===================== PART 1 ===================== -->
+  <section class="part" id="p1">
+    <span class="ptag">Part 1 · S1-1</span>
+    <h2>Activations exist for a reason</h2>
+    <p class="claim">A model with no nonlinearity can only draw a straight boundary, so it cannot separate two
+      interleaved / concentric rings. Adding a single ReLU hidden layer can. Only the activation changes —
+      the boundary picture is the money shot.</p>
+
+    <div class="cards">
+      <div class="card">
+        <h3>The claim</h3>
+        <p>A purely linear model (a single layer + sigmoid) can only carve space with one straight line.
+          Concentric rings aren't linearly separable, so it's stuck near chance.</p>
+      </div>
+      <div class="card cc">
+        <h3>The concept</h3>
+        <p>Stacking linear layers is still linear. A nonlinearity like <b>ReLU</b> bends space, letting the
+          network compose many lines into a curved, closed boundary that wraps the inner ring.</p>
+      </div>
+      <div class="card cb">
+        <h3>What we built</h3>
+        <p>~300 noisy 2D points as two rings (inner = class 0, outer = class 1). Both models train
+          <b>live in your browser</b>; we plot each decision boundary and its accuracy.</p>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="controls">
+        <label class="ctl">Noise <span class="val" id="noiseVal">0.18</span>
+          <input type="range" id="noise" min="0.05" max="0.35" step="0.01" value="0.18">
+        </label>
+        <label class="ctl">ReLU hidden units <span class="val" id="hVal">8</span>
+          <input type="range" id="hidden" min="1" max="16" step="1" value="8">
+        </label>
+        <div class="btns">
+          <button class="ghost" id="regen">Generate new data</button>
+          <button id="train">▶ Train both</button>
+        </div>
+      </div>
+
+      <div class="plots">
+        <div class="plot">
+          <h4>(a) Linear + sigmoid</h4>
+          <p class="arch">x → [Linear 2→1] → σ</p>
+          <canvas id="cvA" width="320" height="320"></canvas>
+          <div class="acc">accuracy <b id="accA">—</b></div>
+          <div class="accbar"><i id="barA"></i></div>
+        </div>
+        <div class="plot">
+          <h4>(b) One ReLU hidden layer</h4>
+          <p class="arch" id="archB">x → [Linear 2→8] → ReLU → [Linear 8→1] → σ</p>
+          <canvas id="cvB" width="320" height="320"></canvas>
+          <div class="acc">accuracy <b id="accB">—</b></div>
+          <div class="accbar"><i id="barB"></i></div>
+        </div>
+      </div>
+      <div class="epoch" id="epoch">ready</div>
+
+      <div class="legend">
+        <span><i class="dot c0"></i> class 0 · inner ring</span>
+        <span><i class="dot c1"></i> class 1 · outer ring</span>
+        <span><i class="swatch s0"></i> predicted class 0 region</span>
+        <span><i class="swatch s1"></i> predicted class 1 region</span>
+      </div>
+
+      <div class="callout">
+        <b>What to watch:</b> the linear model can only tilt one straight line — it splits the rings roughly in
+        half and parks near <b>~55%</b>. The ReLU model bends the boundary into a closed loop around the inner
+        ring and climbs to <b>~99–100%</b>. Same data, same training; the only difference is one nonlinearity.
+        Try dropping hidden units to <b>1</b> — the curve almost disappears and accuracy collapses back toward linear.
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PARTS 2–4 (placeholders) ===================== -->
+  <section class="part soon" id="p2"><span class="ptag">Part 2 · S1-2</span><h2>Coming next</h2>
+    <p class="claim">Add this section when the Part 2 brief is shared.</p></section>
+  <section class="part soon" id="p3"><span class="ptag">Part 3 · S1-3</span><h2>Coming next</h2>
+    <p class="claim">Add this section when the Part 3 brief is shared.</p></section>
+  <section class="part soon" id="p4"><span class="ptag">Part 4 · S1-4</span><h2>Coming next</h2>
+    <p class="claim">Add this section when the Part 4 brief is shared.</p></section>
+
+  <footer>
+    Built for ERA V5 · Session 1 · by <a class="inline" href="https://github.com/christo707/era-v5-assignments">christo707</a>.
+    Everything runs client-side — no servers, no libraries.
+  </footer>
+</div>
+
+<script>
+"use strict";
+// ---------- tiny math helpers ----------
+const sigmoid = z => 1 / (1 + Math.exp(-z));
+function gaussian(){ let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+// ---------- data: two concentric rings ----------
+function genData(n, noise){
+  const X=[], y=[]; const half=Math.floor(n/2);
+  for(let i=0;i<n;i++){
+    const inner = i<half;
+    const base = inner ? 1.0 : 2.2;
+    const ang = Math.random()*2*Math.PI;
+    const r = base + gaussian()*noise;
+    X.push([Math.cos(ang)*r, Math.sin(ang)*r]);
+    y.push(inner?0:1);
+  }
+  return {X,y};
+}
+function standardize(X){
+  const n=X.length; let mx=0,my=0;
+  for(const p of X){mx+=p[0];my+=p[1];} mx/=n;my/=n;
+  let sx=0,sy=0; for(const p of X){sx+=(p[0]-mx)**2;sy+=(p[1]-my)**2;}
+  sx=Math.sqrt(sx/n)||1; sy=Math.sqrt(sy/n)||1;
+  return {Xs:X.map(p=>[(p[0]-mx)/sx,(p[1]-my)/sy]), mx,my,sx,sy};
+}
+
+// ---------- models ----------
+function Linear(){ this.w=[0,0]; this.b=0; }
+Linear.prototype.fwd=function(x){ return sigmoid(this.w[0]*x[0]+this.w[1]*x[1]+this.b); };
+Linear.prototype.step=function(X,y,lr,iters){
+  const n=X.length;
+  for(let e=0;e<iters;e++){
+    let g0=0,g1=0,gb=0;
+    for(let i=0;i<n;i++){ const d=this.fwd(X[i])-y[i]; g0+=d*X[i][0]; g1+=d*X[i][1]; gb+=d; }
+    this.w[0]-=lr*g0/n; this.w[1]-=lr*g1/n; this.b-=lr*gb/n;
+  }
+};
+
+function MLP(H){
+  this.H=H; this.W1=[]; this.b1=[]; this.W2=[]; this.b2=0;
+  const s1=Math.sqrt(2/2), s2=Math.sqrt(2/H);
+  for(let j=0;j<H;j++){ this.W1.push([gaussian()*s1,gaussian()*s1]); this.b1.push(0); this.W2.push(gaussian()*s2); }
+}
+MLP.prototype.fwd=function(x){
+  let z=this.b2;
+  for(let j=0;j<this.H;j++){ const hp=this.W1[j][0]*x[0]+this.W1[j][1]*x[1]+this.b1[j]; z+=this.W2[j]*(hp>0?hp:0); }
+  return sigmoid(z);
+};
+MLP.prototype.step=function(X,y,lr,iters){
+  const n=X.length,H=this.H;
+  for(let e=0;e<iters;e++){
+    const gW1=Array.from({length:H},()=>[0,0]), gb1=new Array(H).fill(0), gW2=new Array(H).fill(0);
+    let gb2=0;
+    for(let i=0;i<n;i++){
+      const x=X[i]; const hpre=new Array(H), h=new Array(H); let z=this.b2;
+      for(let j=0;j<H;j++){ hpre[j]=this.W1[j][0]*x[0]+this.W1[j][1]*x[1]+this.b1[j]; h[j]=hpre[j]>0?hpre[j]:0; z+=this.W2[j]*h[j]; }
+      const d=sigmoid(z)-y[i]; gb2+=d;
+      for(let j=0;j<H;j++){ gW2[j]+=d*h[j]; const dhp=hpre[j]>0?d*this.W2[j]:0;
+        gW1[j][0]+=dhp*x[0]; gW1[j][1]+=dhp*x[1]; gb1[j]+=dhp; }
+    }
+    for(let j=0;j<H;j++){ this.W1[j][0]-=lr*gW1[j][0]/n; this.W1[j][1]-=lr*gW1[j][1]/n;
+      this.b1[j]-=lr*gb1[j]/n; this.W2[j]-=lr*gW2[j]/n; }
+    this.b2-=lr*gb2/n;
+  }
+};
+function accuracy(model,X,y){ let c=0; for(let i=0;i<X.length;i++) if((model.fwd(X[i])>=0.5?1:0)===y[i]) c++; return c/X.length; }
+
+// ---------- rendering ----------
+const DOM=-3, DOMAX=3; // data-domain shown on canvas
+function toCanvas(px,size){ return ((px-DOM)/(DOMAX-DOM))*size; }
+function draw(cv, model, data){
+  const ctx=cv.getContext('2d'); const S=cv.width;
+  // decision regions (coarse grid)
+  const step=4;
+  for(let py=0;py<S;py+=step){
+    for(let px=0;px<S;px+=step){
+      const dx=DOM+((px+step/2)/S)*(DOMAX-DOM);
+      const dy=DOMAX-((py+step/2)/S)*(DOMAX-DOM);
+      const xs=[(dx-data.mx)/data.sx,(dy-data.my)/data.sy];
+      const p = model ? model.fwd(xs) : 0.5;
+      // blend between class0 (blue) and class1 (orange) by probability
+      const r=Math.round(37+(249-37)*p), g=Math.round(99+(115-99)*p), b=Math.round(235+(22-235)*p);
+      const a=0.16+0.30*Math.abs(p-0.5)*2; // more confident -> more opaque
+      ctx.fillStyle=`rgba(${r},${g},${b},${a})`;
+      ctx.fillRect(px,py,step,step);
+    }
+  }
+  // 0.5 contour hint: draw nothing extra; the colour shift reads as the boundary
+  // points
+  for(let i=0;i<data.X.length;i++){
+    const cx=toCanvas(data.X[i][0],S), cy=S-toCanvas(data.X[i][1],S);
+    ctx.beginPath(); ctx.arc(cx,cy,3.4,0,7);
+    ctx.fillStyle = data.y[i]===0 ? '#2563eb' : '#f97316';
+    ctx.fill(); ctx.lineWidth=1.2; ctx.strokeStyle='rgba(255,255,255,.85)'; ctx.stroke();
+  }
+}
+
+// ---------- app state & loop ----------
+const el=id=>document.getElementById(id);
+const cvA=el('cvA'), cvB=el('cvB');
+let data=null, linModel=null, mlpModel=null, anim=null;
+
+function makeData(){
+  const noise=parseFloat(el('noise').value);
+  const {X,y}=genData(300,noise);
+  const {Xs,mx,my,sx,sy}=standardize(X);
+  data={X,y,Xs,mx,my,sx,sy};
+}
+function resetView(){
+  linModel=null; mlpModel=null;
+  draw(cvA,null,data); draw(cvB,null,data);
+  el('accA').textContent='—'; el('accB').textContent='—';
+  el('barA').style.width='0%'; el('barB').style.width='0%';
+  el('epoch').textContent='ready — press “Train both”';
+}
+function setBadge(which,acc){
+  const a=(acc*100).toFixed(1)+'%';
+  el('acc'+which).textContent=a; el('bar'+which).style.width=(acc*100)+'%';
+  el('acc'+which).style.color = acc>=0.9 ? 'var(--good)' : acc>=0.7 ? '#facc15' : 'var(--bad)';
+}
+
+function train(){
+  if(anim) cancelAnimationFrame(anim);
+  const H=parseInt(el('hidden').value,10);
+  linModel=new Linear(); mlpModel=new MLP(H);
+  const LIN_TOTAL=300, MLP_TOTAL=1500;
+  const LIN_PER=6, MLP_PER=25;
+  let linDone=0, mlpDone=0;
+  el('train').disabled=true; el('regen').disabled=true;
+
+  function frame(){
+    if(linDone<LIN_TOTAL){ linModel.step(data.Xs,data.y,0.5,LIN_PER); linDone+=LIN_PER; }
+    if(mlpDone<MLP_TOTAL){ mlpModel.step(data.Xs,data.y,0.3,MLP_PER); mlpDone+=MLP_PER; }
+    draw(cvA,linModel,data); draw(cvB,mlpModel,data);
+    setBadge('A',accuracy(linModel,data.Xs,data.y));
+    setBadge('B',accuracy(mlpModel,data.Xs,data.y));
+    el('epoch').textContent=`linear epoch ${Math.min(linDone,LIN_TOTAL)}/${LIN_TOTAL}  ·  ReLU epoch ${Math.min(mlpDone,MLP_TOTAL)}/${MLP_TOTAL}`;
+    if(linDone<LIN_TOTAL || mlpDone<MLP_TOTAL){ anim=requestAnimationFrame(frame); }
+    else { el('train').disabled=false; el('regen').disabled=false; el('epoch').textContent+='  ·  done ✓'; }
+  }
+  anim=requestAnimationFrame(frame);
+}
+
+// ---------- wire up ----------
+el('noise').addEventListener('input',e=>{ el('noiseVal').textContent=parseFloat(e.target.value).toFixed(2);
+  makeData(); resetView(); });
+el('hidden').addEventListener('input',e=>{ const H=e.target.value; el('hVal').textContent=H;
+  el('archB').textContent=`x → [Linear 2→${H}] → ReLU → [Linear ${H}→1] → σ`; });
+el('regen').addEventListener('click',()=>{ makeData(); resetView(); });
+el('train').addEventListener('click',train);
+
+// init
+makeData(); resetView();
+// auto-train once shortly after load so the money shot is the first thing seen
+setTimeout(train, 350);
+</script>
+</body>
+</html>
