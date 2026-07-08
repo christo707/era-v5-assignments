@@ -2,6 +2,8 @@
 
 **Class focus:** BPE, WordPiece, SentencePiece; vocab size, merges, frequency sorting; Indic and multilingual.
 
+**🔗 Live widget:** https://chris-era-v5-s2.netlify.app/ — self-score **≈ 4,460** (tokenizes live in your browser).
+
 ## The assignment
 
 Pick India's Wikipedia page in **English, Hindi, Telugu, and one more language**. Design a **single BPE tokenizer
