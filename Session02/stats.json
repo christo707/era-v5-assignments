@@ -1,0 +1,64 @@
+{
+  "perLang": {
+    "en": {
+      "words": 10027,
+      "tokens": 12026,
+      "X": 1.1994
+    },
+    "hi": {
+      "words": 8022,
+      "tokens": 11418,
+      "X": 1.4233
+    },
+    "te": {
+      "words": 2453,
+      "tokens": 3492,
+      "X": 1.4236
+    },
+    "ne": {
+      "words": 1477,
+      "tokens": 2102,
+      "X": 1.4232
+    }
+  },
+  "perLangMerges": {
+    "en": 4746,
+    "hi": 1115,
+    "te": 2722,
+    "ne": 1189
+  },
+  "spread": 0.2242,
+  "score": 4460.3,
+  "baseCodepoints": 227,
+  "vocabCount": 10000,
+  "normalize": "lower",
+  "en_target": 1.2,
+  "langs": [
+    "en",
+    "hi",
+    "te",
+    "ne"
+  ],
+  "sources": {
+    "en": {
+      "title": "India",
+      "revid": 1362789340,
+      "url": "https://en.wikipedia.org/w/index.php?oldid=1362789340"
+    },
+    "hi": {
+      "title": "भारत",
+      "revid": 6579409,
+      "url": "https://hi.wikipedia.org/w/index.php?oldid=6579409"
+    },
+    "te": {
+      "title": "భారతదేశం",
+      "revid": 4848340,
+      "url": "https://te.wikipedia.org/w/index.php?oldid=4848340"
+    },
+    "ne": {
+      "title": "भारत",
+      "revid": 1343084,
+      "url": "https://ne.wikipedia.org/w/index.php?oldid=1343084"
+    }
+  }
+}

@@ -35,7 +35,7 @@ Each `SessionXX/` folder contains that class's assignment — code, notebooks, n
 | # | Class | Focus | Status |
 |---|-------|-------|--------|
 | 1 | Transformer Foundations | Attention, multi-head attention, positional encodings; minimal transformer block from scratch | ✅ |
-| 2 | Tokenization & Vocabulary Design | BPE, WordPiece, SentencePiece; vocab size, merges; Indic & multilingual | ⬜ |
+| 2 | Tokenization & Vocabulary Design | BPE, WordPiece, SentencePiece; vocab size, merges; Indic & multilingual | ✅ |
 | 3 | Data Collection & Sourcing | Pre-training corpora, SFT, preference, safety, evaluation | ⬜ |
 | 4 | Data Cleaning & Deduplication | Quality filters, MinHash/LSH dedup, toxicity/PII, contamination scans | ⬜ |
 | 5 | Data Mixtures & Curriculum | Domain weighting, upsampling, mixture-shift effects on loss | ⬜ |

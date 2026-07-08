@@ -36,6 +36,11 @@ runs/
 logs/
 *.log
 
+# Exception: Session 2's corpus snapshots are small and required by the widget
+# (and for reproducing the tokenizer scores), so they are committed.
+!Session02/data/
+!Session02/data/**
+
 # Editors / IDEs
 .vscode/
 .idea/

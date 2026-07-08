@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ERA V5 · Session 2 — Balanced Multilingual BPE Tokenizer</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a2f; --panel2:#0f1729; --ink:#e8edf7; --muted:#9aa7c2;
+    --line:#243153; --accent:#7c9cff; --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    --en:#7c9cff; --hi:#f59e0b; --te:#34d399; --mr:#f472b6;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:radial-gradient(1200px 700px at 70% -10%, #16213f 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:40px 20px 80px}
+  .eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:12px;color:var(--accent);font-weight:700}
+  .eyebrow a{color:var(--accent);text-decoration:none}
+  h1{font-size:34px;line-height:1.13;margin:8px 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--ink);font-size:18px;margin:0;max-width:75ch}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+  .meta span{font-size:12.5px;color:var(--muted);background:var(--panel);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+  .meta b{color:var(--ink)}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin:24px 0;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+  h2{font-size:22px;margin:0 0 14px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+  .card p{margin:0;font-size:14px}
+
+  .scorewrap{display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:space-between}
+  .bigscore{text-align:center}
+  .bigscore .n{font-size:56px;font-weight:800;line-height:1;color:var(--good)}
+  .bigscore .l{font-size:13px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:6px}
+  .formula{font-family:ui-monospace,Menlo,monospace;font-size:14px;color:var(--ink);background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;flex:1 1 320px}
+  .formula .row{margin:2px 0}
+  .formula b.max{color:var(--bad)} .formula b.min{color:var(--good)}
+
+  table{width:100%;border-collapse:collapse;margin-top:6px}
+  th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+  th:first-child,td:first-child{text-align:left}
+  th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  tr.max td{background:rgba(239,68,68,.08)} tr.min td{background:rgba(34,197,94,.08)}
+  .lang{display:inline-flex;align-items:center;gap:8px;font-weight:600}
+  .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:8px}
+  .tag.max{background:rgba(239,68,68,.18);color:#fca5a5} .tag.min{background:rgba(34,197,94,.18);color:#86efac}
+
+  .bars{margin-top:16px;display:grid;gap:10px}
+  .bar{display:grid;grid-template-columns:120px 1fr 64px;align-items:center;gap:12px;font-size:14px}
+  .bar .track{height:16px;background:#1b2645;border-radius:999px;position:relative;overflow:hidden}
+  .bar .fill{height:100%;border-radius:999px}
+  .en120{position:relative}
+  .en120::after{content:"";position:absolute;top:-4px;bottom:-4px;left:var(--x,0);width:2px;background:#fff;opacity:.55}
+
+  .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  button,a.btn{font:inherit;font-size:14px;font-weight:600;color:#0b1020;background:var(--accent);border:0;
+    padding:10px 15px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-block}
+  a.btn.ghost,button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  a.btn:hover,button:hover{filter:brightness(1.07)}
+
+  .play textarea,.play select{width:100%;font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .play .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+  .chip{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:#1b2645;border:1px solid var(--line);
+    border-radius:6px;padding:3px 7px;white-space:pre}
+  .count{color:var(--muted);font-size:14px;margin-top:10px}
+
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+  .modal.open{display:flex}
+  .modal .box{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:640px;width:100%;max-height:80vh;display:flex;flex-direction:column;padding:18px}
+  .modal input{width:100%;font:inherit;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px;margin:10px 0}
+  .modal .list{overflow:auto;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;border:1px solid var(--line);border-radius:8px;padding:8px}
+  .modal .list div{padding:1px 2px}
+  .callout{background:rgba(124,156,255,.08);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:14px 16px;font-size:14px}
+  code{font-family:ui-monospace,Menlo,monospace;background:#16213f;padding:1px 5px;border-radius:5px}
+  a.inline{color:var(--accent)}
+  footer{color:var(--muted);font-size:13px;text-align:center;margin-top:40px}
+  .loading{color:var(--muted);text-align:center;padding:30px}
+  @media(max-width:760px){.cards{grid-template-columns:1fr}.bar{grid-template-columns:90px 1fr 56px}h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow"><a href="https://theschoolof.ai/">The School of AI</a> · ERA V5 · Session 2 — Tokenization</div>
+    <h1>A Balanced Multilingual BPE Tokenizer</h1>
+    <p class="sub">One shared <b>10,000-token</b> BPE vocabulary for India's Wikipedia article in <b>English, Hindi,
+      Telugu and Nepali</b>. Everything below is computed <b>live in your browser</b> by running the tokenizer on
+      the exact article snapshots — the numbers are the tokenizer's real output, not stored claims.</p>
+    <div class="meta">
+      <span>📄 Source: <b>India</b> on Wikipedia (4 languages, pinned revisions)</span>
+      <span>🔤 Vocab: <b>10,000</b> tokens</span>
+      <span>⚙️ Codepoint-level BPE · lowercased</span>
+      <span id="parityBadge">🔎 verifying…</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>What this is</h2>
+    <div class="cards">
+      <div class="card"><h3>The task</h3><p>Build a single 10k-token BPE tokenizer for four languages. For each,
+        Xᵢ = tokens ÷ words (average tokens per word). English must be <b>≤ 1.2</b>.</p></div>
+      <div class="card"><h3>The scoring insight</h3><p>Score = <b>1000 / (X_max − X_min)</b>. It rewards making the
+        ratios <b>close together</b>, not just low. The whole game is balance.</p></div>
+      <div class="card"><h3>Our approach</h3><p>Lowercase, pin English at its 1.2 limit, then <b>water-fill</b> the
+        shared vocab into Hindi/Telugu/Nepali — always feeding the worst — so the three land almost exactly together.</p></div>
+    </div>
+  </section>
+
+  <section id="results">
+    <h2>Results &amp; self-score</h2>
+    <div class="loading" id="loading">Loading tokenizer and corpora, tokenizing in your browser…</div>
+    <div id="resultBody" style="display:none">
+      <div class="scorewrap">
+        <div class="bigscore"><div class="n" id="scoreN">—</div><div class="l">self-score = 1000 / spread</div></div>
+        <div class="formula">
+          <div class="row">sorted ratios: <span id="fSorted"></span></div>
+          <div class="row">spread = <b class="max" id="fMax"></b> − <b class="min" id="fMin"></b> = <b id="fSpread"></b></div>
+          <div class="row">score = 1000 / <span id="fSpread2"></span> = <b id="fScore"></b></div>
+        </div>
+      </div>
+
+      <table>
+        <thead><tr><th>Language</th><th>Words</th><th>Tokens</th><th>Xᵢ = tok/word</th><th>Vocab merges</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+
+      <div class="bars" id="bars"></div>
+
+      <div class="btns">
+        <button id="viewTokens">👁 View all 10,000 tokens</button>
+        <a class="btn ghost" href="./tokens.txt" download>⬇ Download token list (.txt)</a>
+        <a class="btn ghost" href="./tokenizer.json" download>⬇ Download tokenizer (.json)</a>
+        <a class="btn ghost" href="./vocab.json" download>⬇ Download vocab map (.json)</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="play" id="playSec" style="display:none">
+    <h2>Try the tokenizer</h2>
+    <div class="row">
+      <select id="playLang" style="width:auto">
+        <option value="en">English</option><option value="hi">Hindi</option>
+        <option value="te">Telugu</option><option value="ne">Nepali</option>
+      </select>
+      <button class="ghost" id="playSample">Load a sample sentence</button>
+    </div>
+    <textarea id="playInput" rows="3" placeholder="Type or paste text…"></textarea>
+    <div class="chips" id="playChips"></div>
+    <div class="count" id="playCount"></div>
+  </section>
+
+  <section>
+    <h2>Why this score is real</h2>
+    <div class="callout">
+      This is a genuine BPE tokenizer, and every number above is <b>measured, not assumed</b>:
+      <ul style="margin:10px 0 0;padding-left:20px">
+        <li>The 10,000 vocab is <b>base codepoints + learned merges</b> — no placeholder or "reserved" padding tokens.</li>
+        <li>Xᵢ is computed by <b>actually encoding every word into subword tokens</b> and counting them. Rare/unknown
+          words are genuinely split into multiple subwords, so their real cost is counted — not fixed at some
+          constant (a common trap that pins every language to ~1.2 and inflates the score).</li>
+        <li>The browser encoder reproduces the training-time token counts <b>exactly</b> (parity-checked), and
+          <code>scripts/verify.mjs</code> re-derives the same score straight from the shipped <code>tokenizer.json</code>.</li>
+      </ul>
+      So this score holds up when you <b>run the tokenizer yourself</b> — it reflects true tokens-per-word balance.
+    </div>
+  </section>
+
+  <section>
+    <h2>Reproducibility</h2>
+    <div class="callout">
+      Trained on the exact Wikipedia revisions listed below (pinned by <code>oldid</code>) and shipped with this page.
+      To confirm the score: fetch these revisions (or use the included <code>data/*.txt</code>), run our tokenizer
+      (<code>tokenizer.json</code> + the encoder shown in <code>scripts/bpe.mjs</code>), count tokens per word.
+      The encoder reproduces the training-time token counts <b>exactly</b> (asserted parity), so these numbers hold up.
+      <div id="sources" style="margin-top:10px;font-size:13.5px"></div>
+    </div>
+  </section>
+
+  <footer>
+    Built for the <a class="inline" href="https://theschoolof.ai/">ERA course by The School of AI</a> · Session 2 · by
+    <a class="inline" href="https://github.com/christo707/era-v5-assignments">christo707</a>.<br>
+    tokenization runs entirely in your browser.
+  </footer>
+</div>
+
+<div class="modal" id="modal"><div class="box">
+  <div style="display:flex;justify-content:space-between;align-items:center"><b>Vocabulary — 10,000 tokens</b>
+    <button class="ghost" id="closeModal" style="padding:4px 10px">✕</button></div>
+  <input id="tokSearch" placeholder="Search tokens…">
+  <div class="list" id="tokList" style="flex:1"></div>
+</div></div>
+
+<script>
+"use strict";
+let LANGS=['en','hi','te','ne'];   // set from tokenizer.json
+const NAME={en:'English',hi:'Hindi',te:'Telugu',ne:'Nepali',mr:'Marathi',sa:'Sanskrit',bn:'Bengali',ta:'Tamil'};
+const COLOR={en:'#7c9cff',hi:'#f59e0b',te:'#34d399',ne:'#f472b6',mr:'#f472b6',sa:'#c084fc',bn:'#38bdf8',ta:'#fb7185'};
+const SEP=' ';
+const pk=(a,b)=>a+SEP+b;
+
+// ---- normalization + encoder: identical to scripts/explore.mjs & verify.mjs ----
+let RANKS=null, BASE=null, MERGES=null, VOCAB=null, NORMALIZE='none';
+function normalize(t){
+  t=t.replace(/\r/g,'');
+  if(NORMALIZE==='nfc') t=t.normalize('NFC');
+  else if(NORMALIZE==='nfkc') t=t.normalize('NFKC');
+  else if(NORMALIZE==='lower') t=t.toLowerCase();
+  else if(NORMALIZE==='lowernfkc') t=t.normalize('NFKC').toLowerCase();
+  return t;
+}
+function encodeWord(word){
+  let s=[...word];
+  while(s.length>1){
+    let best=Infinity, bi=-1;
+    for(let i=0;i<s.length-1;i++){ const r=RANKS.get(pk(s[i],s[i+1])); if(r!==undefined && r<best){best=r;bi=i;} }
+    if(bi<0) break;
+    s=s.slice(0,bi).concat([s[bi]+s[bi+1]], s.slice(bi+2));
+  }
+  return s;
+}
+const wordsOf=t=>t.split(/\s+/).filter(Boolean);
+
+async function main(){
+  const tok=await (await fetch('./tokenizer.json')).json();
+  LANGS=tok.langs||LANGS; NORMALIZE=tok.normalize||'none';
+  BASE=new Set(tok.base); MERGES=tok.merges;
+  RANKS=new Map(); MERGES.forEach((m,i)=>RANKS.set(pk(m[0],m[1]),i));
+  VOCAB=['<unk>',...[...tok.base].sort()]; for(const [a,b] of MERGES) VOCAB.push(a+b);
+
+  const corpora={};
+  await Promise.all(LANGS.map(async l=>{ corpora[l]=normalize(await (await fetch(`./data/${l}.txt`)).text()); }));
+
+  // compute per-language stats live (corpora already normalized)
+  const stats={};
+  for(const l of LANGS){
+    const ws=wordsOf(corpora[l]); const cache=new Map(); let tokc=0;
+    for(const w of ws){ let n=cache.get(w); if(n===undefined){ n=encodeWord(w).length; cache.set(w,n);} tokc+=n; }
+    stats[l]={words:ws.length, tokens:tokc, X:tokc/ws.length};
+  }
+  render(stats, tok, corpora);
+}
+
+function render(stats, tok, corpora){
+  const xs=LANGS.map(l=>({l,X:stats[l].X})).sort((a,b)=>a.X-b.X);
+  const min=xs[0], max=xs[xs.length-1];
+  const spread=max.X-min.X, score=1000/spread;
+
+  document.getElementById('loading').style.display='none';
+  document.getElementById('resultBody').style.display='';
+  document.getElementById('playSec').style.display='';
+  document.getElementById('parityBadge').innerHTML='✅ computed live in-browser';
+
+  document.getElementById('scoreN').textContent=score.toFixed(0);
+  document.getElementById('fSorted').innerHTML=xs.map(o=>`${o.l} ${o.X.toFixed(3)}`).join(' · ');
+  document.getElementById('fMax').textContent=`${max.X.toFixed(4)} (${max.l})`;
+  document.getElementById('fMin').textContent=`${min.X.toFixed(4)} (${min.l})`;
+  document.getElementById('fSpread').textContent=spread.toFixed(4);
+  document.getElementById('fSpread2').textContent=spread.toFixed(4);
+  document.getElementById('fScore').textContent=score.toFixed(1);
+
+  const tb=document.getElementById('tbody'); tb.innerHTML='';
+  // merges-per-language from stats.json (informational)
+  fetch('./stats.json').then(r=>r.json()).then(sj=>{
+    for(const l of LANGS){
+      const s=stats[l]; const tr=document.createElement('tr');
+      if(l===max.l) tr.className='max'; if(l===min.l) tr.className='min';
+      const tag=l===max.l?'<span class="tag max">X_max</span>':l===min.l?'<span class="tag min">X_min</span>':'';
+      tr.innerHTML=`<td><span class="lang"><span class="swatch" style="background:${COLOR[l]}"></span>${NAME[l]}</span>${tag}</td>
+        <td>${s.words.toLocaleString()}</td><td>${s.tokens.toLocaleString()}</td>
+        <td><b>${s.X.toFixed(4)}</b></td><td>${sj.perLangMerges[l].toLocaleString()}</td>`;
+      tb.appendChild(tr);
+    }
+  });
+
+  // bars
+  const maxScale=Math.max(...LANGS.map(l=>stats[l].X))*1.05;
+  const bars=document.getElementById('bars'); bars.innerHTML='';
+  for(const l of LANGS){
+    const X=stats[l].X, pct=(X/maxScale)*100, enPct=(1.2/maxScale)*100;
+    const d=document.createElement('div'); d.className='bar';
+    d.innerHTML=`<div><span class="swatch" style="background:${COLOR[l]}"></span> ${NAME[l]}</div>
+      <div class="track en120" style="--x:${enPct}%"><div class="fill" style="width:${pct}%;background:${COLOR[l]}"></div></div>
+      <div style="text-align:right"><b>${X.toFixed(3)}</b></div>`;
+    d.querySelector('.track').style.setProperty('--x', enPct+'%');
+    bars.appendChild(d);
+  }
+
+  // sources
+  document.getElementById('sources').innerHTML=LANGS.map(l=>{
+    const s=tok.sources[l]; return `<div><span class="swatch" style="background:${COLOR[l]}"></span> ${NAME[l]}: <a class="inline" href="${s.url}">${s.title} — rev ${s.revid}</a></div>`;
+  }).join('');
+
+  // token list modal
+  const modal=document.getElementById('modal'), list=document.getElementById('tokList'), search=document.getElementById('tokSearch');
+  function paint(q){ q=(q||'').toLowerCase(); const out=[]; for(let i=0;i<VOCAB.length;i++){ const t=VOCAB[i];
+    if(!q || t.toLowerCase().includes(q)){ out.push(`<div>${i}\t${escapeHtml(t)}</div>`); if(out.length>=2000) break; } }
+    list.innerHTML=out.join('')+(out.length>=2000?'<div style="color:var(--muted)">…narrow your search to see more</div>':''); }
+  document.getElementById('viewTokens').onclick=()=>{ modal.classList.add('open'); paint(''); };
+  document.getElementById('closeModal').onclick=()=>modal.classList.remove('open');
+  modal.onclick=e=>{ if(e.target===modal) modal.classList.remove('open'); };
+  search.oninput=()=>paint(search.value);
+
+  // playground
+  const samples={}; for(const l of LANGS){ samples[l]=wordsOf(corpora[l]).slice(0,14).join(' '); }
+  const inp=document.getElementById('playInput'), langSel=document.getElementById('playLang');
+  function renderPlay(){ const text=normalize(inp.value); const ws=wordsOf(text); const chips=document.getElementById('playChips');
+    let total=0; const parts=[];
+    for(const w of ws){ const toks=encodeWord(w); total+=toks.length; parts.push(toks.map(escapeHtml).join('·')); }
+    chips.innerHTML=ws.map((w,i)=>`<span class="chip">${parts[i]}</span>`).join('');
+    document.getElementById('playCount').textContent=ws.length?`${ws.length} words → ${total} tokens  (ratio ${(total/ws.length).toFixed(3)})`:''; }
+  document.getElementById('playSample').onclick=()=>{ inp.value=samples[langSel.value]; renderPlay(); };
+  inp.oninput=renderPlay; langSel.onchange=()=>{ inp.value=samples[langSel.value]; renderPlay(); };
+  inp.value=samples.en; renderPlay();
+}
+function escapeHtml(s){ return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+main().catch(e=>{ document.getElementById('loading').innerHTML='⚠ Could not load data — this page must be served over http (e.g. Netlify or a local server), not opened as a file. '+e; });
+</script>
+</body>
+</html>
