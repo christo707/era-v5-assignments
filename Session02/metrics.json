@@ -1,0 +1,51 @@
+{
+  "variant": "wiki_faithful_markdown",
+  "languages": {
+    "en": "English",
+    "hi": "Hindi",
+    "te": "Telugu",
+    "mai": "Maithili"
+  },
+  "weights": {
+    "en": 3,
+    "hi": 4,
+    "te": 6,
+    "mai": 6
+  },
+  "vocab_size": 10000,
+  "model": "HF BPE",
+  "normalizer": "none (exact round-trip)",
+  "pre_tokenizer": "Metaspace ▁",
+  "decoder": "Metaspace ▁",
+  "unit_policy": "one contiguous Unicode letter/mark/number run OR one visible non-space punctuation/symbol char",
+  "rows": {
+    "en": {
+      "language": "English",
+      "tokens": 114969,
+      "faithful_units": 186367,
+      "ratio": 0.6168956950533088
+    },
+    "hi": {
+      "language": "Hindi",
+      "tokens": 52012,
+      "faithful_units": 88359,
+      "ratio": 0.5886440543691078
+    },
+    "te": {
+      "language": "Telugu",
+      "tokens": 22108,
+      "faithful_units": 36292,
+      "ratio": 0.6091700650281053
+    },
+    "mai": {
+      "language": "Maithili",
+      "tokens": 3554,
+      "faithful_units": 5808,
+      "ratio": 0.6119146005509641
+    }
+  },
+  "spread": 0.02825164068420094,
+  "score": 35396.17437366129,
+  "hindi_penalty_factor": 1.0,
+  "hindi_adjusted_score": 35396.17437366129
+}

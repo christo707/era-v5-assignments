@@ -7,7 +7,7 @@ This repository is organized by session. After each class I add my work under th
 ## Live demos
 
 - **Session 1 — Why Neural Networks Work:** https://chris-era-v5-s1.netlify.app/
-- **Session 2 — Balanced Multilingual BPE Tokenizer:** https://chris-era-v5-s2.netlify.app/
+- **Session 2 — Faithful Multilingual BPE Tokenizer:** https://chris-era-v5-s2.netlify.app/
 
 ## Course at a glance
 
