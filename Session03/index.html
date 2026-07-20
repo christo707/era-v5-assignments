@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Anvesha: A 40B India-First LLM · ERA V5 Session 3</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a2f; --panel2:#0f1729; --ink:#e8edf7; --muted:#9aa7c2;
+    --line:#243153; --accent:#7c9cff; --good:#22c55e; --warn:#f59e0b;
+    --code:#7c9cff; --agent:#f59e0b; --indic:#34d399; --india:#f472b6; --radius:14px;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box} html,body{margin:0} html{scroll-behavior:smooth}
+  body{background:radial-gradient(1100px 600px at 75% -10%, #16213f 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font:15.5px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:940px;margin:0 auto;padding:44px 24px 88px}
+
+  /* scroll-progress bar */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;
+    background:linear-gradient(90deg,var(--accent),var(--indic));transition:width .12s linear}
+
+  /* scroll-reveal (progressive enhancement): hidden ONLY when JS adds .reveal-on,
+     so the page is never blank without JS/observer. Children ease up + stagger. */
+  html.reveal-on .reveal>*{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  html.reveal-on .reveal.in>*{opacity:1;transform:none}
+  html.reveal-on .reveal.in>*:nth-child(1){transition-delay:.03s}
+  html.reveal-on .reveal.in>*:nth-child(2){transition-delay:.10s}
+  html.reveal-on .reveal.in>*:nth-child(3){transition-delay:.17s}
+  html.reveal-on .reveal.in>*:nth-child(4){transition-delay:.24s}
+  html.reveal-on .reveal.in>*:nth-child(n+5){transition-delay:.30s}
+  @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} #progress{transition:none} }
+
+  .eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:11.5px;color:var(--accent);font-weight:700}
+  .eyebrow a{color:var(--accent);text-decoration:none}
+  h1{font-size:32px;line-height:1.1;margin:8px 0 4px;letter-spacing:-.02em}
+  .dev{font-weight:600;color:var(--muted);font-size:14px;letter-spacing:.02em;margin-top:2px}
+  .thesis{color:var(--ink);font-size:16px;margin:6px 0 0;max-width:86ch}
+  .thesis b{color:#fff}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0 0}
+  .chips span{font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:5px 10px;border-radius:999px;transition:border-color .2s,transform .2s}
+  .chips span:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .chips b{color:var(--accent)}
+  .obj{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 0;font-size:11.5px;align-items:center;color:var(--muted)}
+  .obj span{padding:3px 9px;border-radius:999px;font-weight:700}
+  .o-code{background:rgba(124,156,255,.16);color:#b9c8ff} .o-agent{background:rgba(245,158,11,.16);color:#fcd58a}
+  .o-indic{background:rgba(52,211,153,.16);color:#8ef0c8} .o-india{background:rgba(244,114,182,.16);color:#f9bdda}
+
+  section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:28px 30px;margin:26px 0;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+  h2{font-size:20px;margin:0 0 12px;display:flex;align-items:center;gap:9px;letter-spacing:-.01em}
+  h2 .num{font-size:11px;font-weight:800;color:#0b1020;background:var(--accent);border-radius:6px;padding:2px 7px}
+  .lead{color:var(--muted);font-size:14px;margin:0 0 18px;line-height:1.6;max-width:78ch}
+  table{width:100%;border-collapse:collapse;margin:10px 0 0;font-size:13.5px}
+  th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.5}
+  tbody tr:nth-child(2n) td{background:rgba(255,255,255,.025)}
+  tbody tr:last-child td{border-bottom:none}
+  th{font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  b.hl{color:#fff}
+  .tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;margin-left:5px;vertical-align:middle}
+  .t-code{background:rgba(124,156,255,.18);color:#b9c8ff} .t-agent{background:rgba(245,158,11,.18);color:#fcd58a}
+  .t-indic{background:rgba(52,211,153,.18);color:#8ef0c8} .t-india{background:rgba(244,114,182,.18);color:#f9bdda}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+  .callout{background:rgba(124,156,255,.08);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:15px 18px;font-size:13px;line-height:1.62;margin-top:18px}
+  .callout.india{border-left-color:var(--india);background:rgba(244,114,182,.07)}
+  .callout.warn{border-left-color:var(--warn);background:rgba(245,158,11,.07)}
+  ol,ul{margin:8px 0 0;padding-left:22px} li{margin:8px 0;font-size:13.5px;line-height:1.55}
+  .big{font-size:30px;font-weight:800;color:var(--good)}
+  code{font-family:ui-monospace,Menlo,monospace;background:#16213f;padding:1px 5px;border-radius:4px;font-size:12px}
+  .kv{display:grid;grid-template-columns:1fr 1fr;gap:14px 30px;font-size:13.5px;line-height:1.55} .kv div b{color:#fff}
+  .src{font-size:11.5px;color:var(--muted);line-height:1.5}
+  .dsbox{max-height:430px;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-top:10px}
+  .dsbox table{margin:0;font-size:12.5px} .dsbox th,.dsbox td{padding:8px 12px}
+  .dsbox a{color:var(--accent);text-decoration:none} .dsbox a:hover{text-decoration:underline}
+  .dsbox .grp td{position:sticky;top:0;background:var(--panel2);color:var(--accent);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  .dsbox tbody tr:nth-child(2n) td{background:transparent}
+  .warnmark{color:var(--warn);font-weight:700}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px}
+  a.inline{color:var(--accent)}
+  @media(max-width:760px){.grid2,.kv{grid-template-columns:1fr}h1{font-size:24px}section{padding:22px 20px}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="wrap">
+  <header class="reveal">
+    <div class="eyebrow"><a href="https://theschoolof.ai/">The School of AI</a> · ERA V5 · Session 3 — LLM Design</div>
+    <h1>Anvesha: A 40B India-First LLM</h1>
+    <div class="dev">अन्वेषा · "the quest" — inquiry &amp; exploration</div>
+    <p class="thesis">A <b>dense 40B</b> model at ~Gemma-4 quality, built to lead on <b>coding</b>, <b>agentic/tool-use</b>,
+      <b>Indic languages</b>, and an <b>India-first worldview</b> — a model whose <b>defaults are Indian</b> (law,
+      geography, currency, language) yet adapts abroad. Below: the decisions, not the prose.</p>
+    <div class="chips">
+      <span><b>40B</b> dense</span><span><b>12T</b> tokens (~300:1)</span>
+      <span><b>200,704</b> vocab</span><span><b>128K</b> context</span><span>~<b>2.9e24</b> FLOPs (~2M H100-h)</span>
+    </div>
+    <div class="obj">Objectives tagged throughout:
+      <span class="o-code">CODE</span><span class="o-agent">AGENTIC</span><span class="o-indic">INDIC</span><span class="o-india">INDIA-FIRST</span>
+    </div>
+  </header>
+
+  <section class="reveal">
+    <h2><span class="num" style="background:var(--india)">★</span>Why "India-first" — engineered, not asserted</h2>
+    <p class="lead">India-first = the model's <b>defaults are Indian</b> (adapts when a prompt is explicitly elsewhere). It's manufactured from Indian data at every layer:</p>
+    <table>
+      <thead><tr><th>Layer</th><th>India data used</th><th>India-first effect</th></tr></thead>
+      <tbody>
+        <tr><td>Law &amp; judgements</td><td>Constitution, BNS/BNSS/BSA (2024), Supreme/High-Court judgments</td><td>reasons under <b>Indian</b> law &amp; precedent by default</td></tr>
+        <tr><td>Geo &amp; maps</td><td>admin geography (LGD, ~780 districts, PIN), India-official boundaries</td><td>J&amp;K, Ladakh, Arunachal shown <b>as Indian</b>; local grounding</td></tr>
+        <tr><td>Civics &amp; culture</td><td>schemes, history, festivals; ₹ / lakh-crore / dd-mm-yyyy / IST</td><td>Indian context is the <b>default</b> unit &amp; framing</td></tr>
+        <tr><td>Languages</td><td>22 scheduled langs, native corpora (Sangraha, IndicCorp)</td><td>thinks <b>in</b> Indian languages, not just translates</td></tr>
+        <tr><td>Tokenizer</td><td>Indic-tuned 200,704 vocab</td><td>no 3–8× <b>token tax</b> on Indian-language users</td></tr>
+        <tr><td>Evaluation</td><td>counterfactual defaults probe + culture benchmarks</td><td>India-first is <b>measured</b>, not assumed</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">1</span>Model &amp; scale</h2>
+    <p class="lead">Dense for cost-sensitive single-GPU serving (~24 GB @4-bit, easy LoRA); over-trained for a permanently cheaper, stronger model.</p>
+    <div class="kv">
+      <div><b>Dense 40B</b> (active=total); MoE kept as a future high-throughput variant.</div>
+      <div><b>12T tokens</b> ≈300:1 (Chinchilla ≈0.8T; peers Llama-3-70B 15T, Gemma-3-27B 14T).</div>
+      <div><b>128K context</b> — train 32K → RoPE 10k→1M (global), local:global 5:1.</div>
+      <div><b>~2.88e24 FLOPs</b> (6ND) ≈ 2M H100-h ≈ 37 days on 2,000 H100s.</div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">2</span>Data — pre-training mixture (12T)</h2>
+    <p class="lead">Tilted to code+agentic (22%) and India/Indic (18%); English general ability stays intact (web+math+books).</p>
+    <table>
+      <thead><tr><th>Slice</th><th class="n">%</th><th class="n">Tokens</th><th>Key sources</th><th>Serves</th></tr></thead>
+      <tbody>
+        <tr><td>English web</td><td class="n">40</td><td class="n">4.80T</td><td>FineWeb / FineWeb-Edu</td><td>general reasoning</td></tr>
+        <tr><td>Code + agentic</td><td class="n">22</td><td class="n">2.64T</td><td>The Stack v2 + GitHub PRs/issues/commits + synthetic tool traces</td><td><span class="tag t-code">CODE</span><span class="tag t-agent">AGENTIC</span></td></tr>
+        <tr><td>Indic (22 langs)</td><td class="n">12</td><td class="n">1.44T</td><td>Sangraha, IndicCorp v2, Varta, Indic Wikipedia</td><td><span class="tag t-indic">INDIC</span></td></tr>
+        <tr><td>Math &amp; science</td><td class="n">8</td><td class="n">0.96T</td><td>Proof-Pile-2, arXiv, synthetic textbooks</td><td>reasoning</td></tr>
+        <tr><td>Books / curated</td><td class="n">7</td><td class="n">0.84T</td><td>books, encyclopedic</td><td>quality</td></tr>
+        <tr><td>India-centric</td><td class="n">6</td><td class="n">0.72T</td><td>judgments, civic/gov, history/culture</td><td><span class="tag t-india">INDIA-FIRST</span></td></tr>
+        <tr><td>Other multilingual</td><td class="n">5</td><td class="n">0.60T</td><td>Wikipedia + curated web</td><td>transfer</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><b>Binding constraint:</b> only ~120–150B <b>native</b> Indic tokens exist, so the Indic slice is <b>majority-synthetic</b> — cap native at ~4 epochs (~500–600B), fill the rest via IndicTrans2 MT / back-translation / transliteration; cap Hindi at ~20% of the slice, upsample Tier-1 non-Hindi.</div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">3</span>Post-training &amp; alignment</h2>
+    <div class="grid2">
+      <div><b>SFT.</b>
+        <ul>
+          <li>Tulu-3 (939K) + OpenHermes-2.5 (~1M) general.</li>
+          <li><span class="tag t-code">CODE</span><span class="tag t-agent">AGENTIC</span> function-calling schemas, repo-edit + ReAct traces, long-context repo SFT.</li>
+          <li><span class="tag t-indic">INDIC</span> native + IndicTrans2-translated instructions + Hinglish.</li>
+          <li><span class="tag t-india">INDIA-FIRST</span> Indian law / civics / culture Q&amp;A.</li>
+        </ul>
+      </div>
+      <div><b>Preference / RL.</b>
+        <ul>
+          <li><b>DPO</b> (UltraFeedback / Tulu-3 + on-policy) → <b>RLVR (GRPO)</b> with verifiable rewards: code unit-tests, math answer-check, IFEval constraints.</li>
+        </ul>
+        <b>Safety.</b>
+        <ul><li>IndicAlign-Toxic (123K) + Hinglish jailbreak-refusal; test Indic safety directly; track over-refusal separately.</li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">4</span>Cleaning — one ordered pipeline</h2>
+    <p class="lead">Cheap ops first, classifiers after heuristics, decontamination last. Indic-specific steps in <span style="color:var(--indic)">green</span>.</p>
+    <ol>
+      <li>Extract (trafilatura) → URL blocklist.</li>
+      <li><span style="color:var(--indic)">Language-ID + route</span> — fastText (English) + IndicLID/GlotLID for 22 Indic langs incl. romanized.</li>
+      <li><span style="color:var(--indic)">Indic Unicode/script normalization <b>before</b> dedup</span> (nukta/matra/zero-width) so variants collapse; keep code-mixed.</li>
+      <li>Heuristic quality (C4 + Gopher + FineWeb) with <b>per-language thresholds</b>.</li>
+      <li>Model quality classifier (FineWeb-Edu ≥3) + Indic-adapted classifier.</li>
+      <li>PII masking + <span class="tag t-code">CODE</span> secret scrub (StarCoder2); toxicity — <b>keep toxic→safe pairs</b> for alignment.</li>
+      <li>Dedup cascade: exact → MinHash-LSH → SemDeDup; looser Jaccard for scarce Indic.</li>
+      <li><span class="tag t-code">CODE</span> license filter, minified/auto-gen removal, syntax validity, near-dedup.</li>
+      <li><b>Benchmark decontamination last</b> — n-gram <b>+ semantic</b> match (catches translated Indic leakage).</li>
+      <li><span class="tag t-india">INDIA-FIRST</span> curation — source-boost Indian gov/legal/civic/news; FineWeb2 rehydration for low-resource Indic; don't let Western filters strip India-context content.</li>
+    </ol>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">5</span>Evaluation — targets vs Gemma-3-27B-IT</h2>
+    <p class="lead">Every baseline pinned to the IT table + exact n-shot/CoT protocol.</p>
+    <table>
+      <thead><tr><th>Objective</th><th>Benchmarks → target</th></tr></thead>
+      <tbody>
+        <tr><td>General</td><td>MMLU-Pro 67.5→<b class="hl">≥74</b>, IFEval 90.4→hold, BBH →≥90</td></tr>
+        <tr><td><span class="tag t-code">CODE</span></td><td>LiveCodeBench 29.7→<b class="hl">≥42</b> (pin version), SWE-bench Verified <b class="hl">≥30%</b>, HumanEval+ →≥90; + Aider-Polyglot, MultiPL-E</td></tr>
+        <tr><td><span class="tag t-agent">AGENTIC</span></td><td>green-field: BFCL <b>v4</b> <b class="hl">≥65%</b>, τ²-bench retail <b class="hl">≥45%</b>, GAIA ≥30%, Terminal-Bench</td></tr>
+        <tr><td>Math / science</td><td>MATH ≥91, GPQA-Diamond 42.4→<b class="hl">≥55</b>, AIME 2024/25</td></tr>
+        <tr><td><span class="tag t-indic">INDIC</span></td><td>MILU →<b class="hl">≥72</b>, IN22+FLORES MT vs IndicTrans2 (worst-language), Global-MMLU-Lite →≥80</td></tr>
+        <tr><td>Long-ctx / safety</td><td>RULER-128K →≥80; FACTS-Grounding →≥82; INDIC-BIAS; over-refusal separate</td></tr>
+      </tbody>
+    </table>
+    <div class="callout india"><b><span class="tag t-india">INDIA-FIRST</span> — measured, not asserted:</b>
+      a <b>counterfactual defaults probe</b> over {₹, lakh/crore, dd-mm-yyyy, IST, BNS/BNSS/BSA, civic entities, Indian names}. Two arms — <b>India-Default Rate</b> (neutral prompts) and <b>Context-Adaptation Rate</b> (prompts set abroad) — <b>both must be high</b> (kills reflexive over-localization). Plus culture sets (BLEnD-India, NormAd, DOSA, DRISHTIKON, MILU), reported <b>worst-case per region/language</b>, gated by rubric + ≥3 expert raters (α ≥0.7).</div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">6</span>Tokenizer — fertility → vocab</h2>
+    <p class="lead">Fertility = tokens/word (FLORES-200 + IN22). Generic tokenizers hit 3–16× worse on Indic (Malayalam ~15.8 tok/word on GPT-4/Llama-3) — that tax is what we remove.</p>
+    <div class="grid2">
+      <div>
+        <table>
+          <thead><tr><th>Language / domain</th><th class="n">target</th></tr></thead>
+          <tbody>
+            <tr><td>English</td><td class="n">≤1.15</td></tr>
+            <tr><td>Code <span class="tag t-code">CODE</span></td><td class="n">≤1.5</td></tr>
+            <tr><td>Hindi / Marathi</td><td class="n">≤1.3 / ≤1.5</td></tr>
+            <tr><td>Bengali / Odia</td><td class="n">≤1.8</td></tr>
+            <tr><td>Tamil / Telugu / Kannada</td><td class="n">≤2.2</td></tr>
+            <tr><td>Malayalam (aggl. floor)</td><td class="n">≤2.5</td></tr>
+            <tr><td><b>Mean Indic</b> (Gemma-3 ~2.28)</td><td class="n"><b class="hl">≤1.9</b></td></tr>
+          </tbody>
+        </table>
+        <p class="lead" style="margin-top:8px">Focus: <b>Tier-1 (11)</b> Hindi, Bengali, Telugu, Marathi, Tamil, Urdu, Gujarati, Kannada, Malayalam, Odia, Punjabi + English.</p>
+      </div>
+      <div>
+        <div style="text-align:center;margin:2px 0 10px"><span class="big">200,704</span><div class="lead">byte-level BPE vocab (≈200K, ×256-aligned)</div></div>
+        <b>Three forces converge:</b>
+        <ol>
+          <li>40B scaling-law optimum ≈ <b>155–180K</b>.</li>
+          <li>11+ Indic scripts + code push <b>up</b>.</li>
+          <li>Empirical <b>plateau ~200K</b> (IndicSuperTokenizer; GPT-4o o200k lands ~200K).</li>
+        </ol>
+        Reject 256K (~0 extra fertility, more softmax) and 128K (3–8× worse Indic).
+        <div class="callout" style="margin-top:10px"><b>Cost / settings.</b> Embedding ≈ <b>4–6%</b> of 40B — cheap vs the Indic tax. Byte fallback, <b>split digits</b>, preserve whitespace/operators, NFC-normalize Indic, shared-script merges, reserve ~2–4K slots.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">7</span>Geospatial — a compact India-first booster (+ one hard gate)</h2>
+    <p class="lead">Frontier LLMs are weak here (MapEval: best ~67% vs 86.7% human) and no dedicated Indian geo-LLM exists — an unclaimed lane. Added as a small cross-cutting rider, <b>not a new pillar</b>; cartographic correctness is the exception — it <b>gates release</b>.</p>
+    <div class="grid2">
+      <div>
+        <b>Cartographic sovereignty <span class="tag t-india">INDIA-FIRST</span></b> — default to Survey-of-India boundaries (J&amp;K, Ladakh/Aksai Chin, PoK, Arunachal as Indian). Wrong depiction is <b>criminal in India</b> (up to 7 yrs / ₹100 cr); Western models render Kashmir "disputed" by viewer geography, so a US-trained model is non-compliant by default. <b>Hard gate:</b> ~150–300-item boundary probe, target ~100%, launch-blocking.
+        <div style="margin-top:12px"><b>Admin depth</b> — the LGD hierarchy (28+8 states/UTs, 785 districts, ~6,471 sub-districts, ~584,615 villages) + PIN codes → address parsing, civic/agentic tasks, disaster response.</div>
+      </div>
+      <div>
+        <b>How much (compact)</b>
+        <ul>
+          <li>Pre-train: <b>~40B-token</b> geo slice (~<b>0.33%</b> of 12T, ~half India) — GeoLLM-style OSM textualization + LGD/PIN/Census serialized to text + explicit boundary statements. Don't oversample (it displaces code/agentic).</li>
+          <li>SFT: ~60–100k — geo tool-use <span class="tag t-agent">AGENTIC</span> + spatial-reasoning CoT + India-map QA.</li>
+        </ul>
+        <b>Precedent (text, scale-appropriate):</b> GeoGalactica (30B, geo continued-pretrain), GeoLLM (OSM→text, improves with scale), K2. EO/vision models (Prithvi, Clay, GeoChat) are complementary — orchestrate via tools, don't replicate.
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">8</span>Top risks</h2>
+    <ul>
+      <li><b>Indic native scarcity (~120–150B)</b> → synthetic slice risks translationese; track synthetic:real.</li>
+      <li><b>Indic coding &amp; agentic evals don't exist publicly</b> → build in-house (a differentiator).</li>
+      <li><b>BNS/BNSS/BSA + current-affairs</b> evals go stale in months → refresh on a cadence.</li>
+      <li><b>Legal clearance</b> — Stack v2 opt-outs; copyright on judgments &amp; news.</li>
+      <li><b>Cartographic gate is legally load-bearing</b> — boundary-depiction errors are criminal in India; treat regressions as launch blockers.</li>
+      <li><b>Dravidian fertility floor ~2–2.5</b> even at 200K; freeze targets after measuring on our own corpus.</li>
+    </ul>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">9</span>Where to get the data</h2>
+    <p class="lead">Canonical, <b>fetch-verified</b> sources (every link confirmed live). <span class="warnmark">⚠</span> = non-commercial / gated — check terms; prefer CC0 / CC-BY / Apache / MIT / ODC-BY for a commercial model.</p>
+    <div class="dsbox">
+      <table>
+        <thead><tr><th>Dataset</th><th>License</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="3">General pre-training (web · code · math · books)</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/HuggingFaceFW/fineweb">FineWeb</a></td><td>ODC-BY</td><td>English web</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu">FineWeb-Edu</a></td><td>ODC-BY</td><td>educational web</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/bigcode/the-stack-v2">The Stack v2</a> <span class="warnmark">⚠ gated</span></td><td>per-file</td><td>source code</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/EleutherAI/proof-pile-2">Proof-Pile-2</a></td><td>source</td><td>math + code</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/open-web-math/open-web-math">OpenWebMath</a></td><td>ODC-BY</td><td>math web</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/deepmind/pg19">PG-19</a></td><td>Apache-2.0</td><td>public-domain books</td></tr>
+
+          <tr class="grp"><td colspan="3">Indic corpora</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/ai4bharat/sangraha">AI4Bharat Sangraha</a></td><td>CC-BY-4.0</td><td>largest cleaned Indic corpus</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/ai4bharat/IndicCorpV2">IndicCorp v2</a></td><td>CC0</td><td>native Indic web</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/ai4bharat/BPCC">BPCC / IndicTrans2</a></td><td>CC0 / CC-BY</td><td>Indic parallel (MT)</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/ai4bharat/Aksharantar">Aksharantar</a></td><td>CC-BY / CC0</td><td>transliteration pairs</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/uonlp/CulturaX">CulturaX</a></td><td>mC4/OSCAR</td><td>multilingual web (Indic)</td></tr>
+
+          <tr class="grp"><td colspan="3">India-centric (legal · civic · news)</td></tr>
+          <tr><td><a href="https://registry.opendata.aws/indian-high-court-judgments/">High Court Judgments (AWS)</a></td><td>CC-BY-4.0</td><td>bulk judgments</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/L-NLProc/NyayaAnumana-Classification-Data">NyayaAnumana</a></td><td>Apache-2.0</td><td>judgment prediction</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/Exploration-Lab/IL-TUR">IL-TUR</a> <span class="warnmark">⚠ NC</span></td><td>CC-BY-NC-SA</td><td>legal NLP benchmark</td></tr>
+          <tr><td><a href="https://www.data.gov.in/">data.gov.in</a></td><td>GODL India</td><td>open-government data</td></tr>
+          <tr><td><a href="https://censusindia.gov.in/census.website/en">Census of India</a></td><td>GoI (ORGI)</td><td>demographic tables</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/rahular/varta">Varta</a></td><td>CC-BY-4.0</td><td>Indian news (14 langs)</td></tr>
+
+          <tr class="grp"><td colspan="3">Post-training &amp; alignment</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/allenai/tulu-3-sft-mixture">Tulu-3 SFT</a></td><td>ODC-BY</td><td>instruction SFT</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/allenai/llama-3.1-tulu-3-8b-preference-mixture">Tulu-3 preferences</a></td><td>ODC-BY</td><td>DPO pairs</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/HuggingFaceH4/ultrafeedback_binarized">UltraFeedback (binarized)</a></td><td>MIT</td><td>preference/DPO</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/gorilla-llm/Berkeley-Function-Calling-Leaderboard">BFCL</a></td><td>Apache-2.0</td><td>function-calling</td></tr>
+          <tr><td><a href="https://github.com/OpenBMB/ToolBench">ToolBench</a></td><td>Apache-2.0</td><td>agentic tool traces</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/ai4bharat/indic-align">IndicAlign</a></td><td>CC-BY-4.0</td><td>Indic instructions + safety</td></tr>
+
+          <tr class="grp"><td colspan="3">Evaluation (key)</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro">MMLU-Pro</a> · <a href="https://huggingface.co/datasets/Idavidrein/gpqa">GPQA</a></td><td>MIT / CC-BY</td><td>reasoning · science</td></tr>
+          <tr><td><a href="https://github.com/LiveCodeBench/LiveCodeBench">LiveCodeBench</a> · <a href="https://huggingface.co/datasets/princeton-nlp/SWE-bench_Verified">SWE-bench Verified</a></td><td>MIT</td><td>coding</td></tr>
+          <tr><td><a href="https://github.com/ShishirPatil/gorilla">BFCL</a> · <a href="https://github.com/sierra-research/tau2-bench">τ²-bench</a></td><td>Apache / MIT</td><td>agentic</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/ai4bharat/MILU">MILU</a> · <a href="https://huggingface.co/datasets/ai4bharat/IN22-Gen">IN22</a> · <a href="https://github.com/facebookresearch/flores">FLORES-200</a></td><td>CC-BY / SA</td><td>Indic · MT</td></tr>
+          <tr><td><a href="https://huggingface.co/datasets/akhilayerukola/NormAd">NormAd</a> · <a href="https://github.com/microsoft/DOSA">DOSA</a> · <a href="https://github.com/nlee0212/BLEnD">BLEnD</a></td><td>CC-BY / MIT</td><td>India-first culture</td></tr>
+
+          <tr class="grp"><td colspan="3">Geospatial (⚠ India sources for official boundaries)</td></tr>
+          <tr><td><a href="https://download.geofabrik.de/asia/india.html">OSM India (Geofabrik)</a></td><td>ODbL</td><td>full India OSM extract</td></tr>
+          <tr><td><a href="https://www.geonames.org/">GeoNames</a></td><td>CC-BY</td><td>global gazetteer</td></tr>
+          <tr><td><a href="https://lgdirectory.gov.in/">LGD (Local Govt Directory)</a></td><td>GoI</td><td>official admin codes/hierarchy</td></tr>
+          <tr><td><a href="https://github.com/datameet/maps">DataMeet maps</a></td><td>CC-BY</td><td>India boundary shapefiles</td></tr>
+          <tr><td><a href="https://onlinemaps.surveyofindia.gov.in/">Survey of India</a></td><td>SoI terms</td><td><b>official boundary ground-truth</b></td></tr>
+          <tr><td><a href="https://bhuvan.nrsc.gov.in/home/index.php">ISRO Bhuvan</a></td><td>NRSC terms</td><td>Indian satellite geodata</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="src reveal"><span><b>Grounded in:</b> Gemma-3 &amp; Chinchilla · FineWeb/-Edu · The Stack v2 · Proof-Pile-2 · AI4Bharat Sangraha / IndicTrans2 · Tulu-3 (SFT→DPO→RLVR) · MILU, BLEnD, NormAd, DOSA, DRISHTIKON · IndicSuperTokenizer, GPT-4o o200k, Sarvam-1 · SWE-bench, BFCL v4, τ²-bench, GPQA, RULER. Vocab &amp; data-supply numbers adversarially re-checked.</span></p>
+
+  <footer class="reveal"><span>Built for the <a class="inline" href="https://theschoolof.ai/">ERA course by The School of AI</a> · Session 3 · by
+    <a class="inline" href="https://github.com/christo707/era-v5-assignments">christo707</a>.</span></footer>
+</div>
+
+<script>
+"use strict";
+// scroll-progress bar
+var bar=document.getElementById('progress');
+function onScroll(){ var h=document.documentElement; var max=h.scrollHeight-h.clientHeight;
+  bar.style.width=(max>0?(h.scrollTop/max*100):0)+'%'; }
+addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+// scroll-reveal (one-shot). Progressive enhancement: only enable the hidden->reveal
+// behavior when JS + IntersectionObserver are present and motion is allowed;
+// otherwise content stays fully visible (never blank).
+var reduce=matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduce && 'IntersectionObserver' in window){
+  document.documentElement.classList.add('reveal-on');
+  var io=new IntersectionObserver(function(es){ es.forEach(function(e){
+    if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); },{threshold:.12,rootMargin:'0px 0px -8% 0px'});
+  [].slice.call(document.querySelectorAll('.reveal')).forEach(function(b){ io.observe(b); });
+}
+</script>
+</body>
+</html>

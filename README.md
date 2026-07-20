@@ -8,6 +8,7 @@ This repository is organized by session. After each class I add my work under th
 
 - **Session 1 — Why Neural Networks Work:** https://chris-era-v5-s1.netlify.app/
 - **Session 2 — Faithful Multilingual BPE Tokenizer:** https://chris-era-v5-s2.netlify.app/
+- **Session 3 — Anvesha: A 40B India-First LLM (design report):** _Netlify link pending deploy_
 
 ## Course at a glance
 
@@ -41,7 +42,7 @@ Each `SessionXX/` folder contains that class's assignment — code, notebooks, n
 |---|-------|-------|--------|
 | 1 | Transformer Foundations | Attention, multi-head attention, positional encodings; minimal transformer block from scratch | ✅ |
 | 2 | Tokenization & Vocabulary Design | BPE, WordPiece, SentencePiece; vocab size, merges; Indic & multilingual | ✅ |
-| 3 | Data Collection & Sourcing | Pre-training corpora, SFT, preference, safety, evaluation | ⬜ |
+| 3 | Data Collection & Sourcing | Pre-training corpora, SFT, preference, safety, evaluation | ✅ (Anvesha design report) |
 | 4 | Data Cleaning & Deduplication | Quality filters, MinHash/LSH dedup, toxicity/PII, contamination scans | ⬜ |
 | 5 | Data Mixtures & Curriculum | Domain weighting, upsampling, mixture-shift effects on loss | ⬜ |
 | 6 | Building the Training Dataset | Sharding, packing, streaming dataloaders, tokenized binary formats | ⬜ |
