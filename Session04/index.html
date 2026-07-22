@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Session 4 — Cleaning the Indic Corpus &amp; Geospatial Data</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#121a2f; --panel2:#0f1729; --ink:#e8edf7; --muted:#9aa7c2;
+    --line:#243153; --accent:#7c9cff; --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    --text:#7c9cff; --geo:#34d399; --radius:14px; --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box} html,body{margin:0} html{scroll-behavior:smooth}
+  body{background:radial-gradient(1100px 600px at 75% -10%, #16213f 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font:15.5px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;padding:44px 24px 88px}
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;background:linear-gradient(90deg,var(--text),var(--geo));transition:width .12s linear}
+  html.reveal-on .reveal>*{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  html.reveal-on .reveal.in>*{opacity:1;transform:none}
+  html.reveal-on .reveal.in>*:nth-child(1){transition-delay:.03s}
+  html.reveal-on .reveal.in>*:nth-child(2){transition-delay:.10s}
+  html.reveal-on .reveal.in>*:nth-child(3){transition-delay:.17s}
+  html.reveal-on .reveal.in>*:nth-child(n+4){transition-delay:.24s}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}#progress{transition:none}}
+  .eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:11.5px;color:var(--accent);font-weight:700}
+  .eyebrow a{color:var(--accent);text-decoration:none}
+  h1{font-size:31px;line-height:1.12;margin:8px 0 6px;letter-spacing:-.01em}
+  .sub{color:var(--ink);font-size:16px;margin:6px 0 0;max-width:82ch}
+  .sub b{color:#fff}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}
+  .chips span{font-size:12.5px;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:5px 11px;border-radius:999px}
+  .chips b{color:var(--accent)}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 28px;margin:24px 0;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+  h2{font-size:20px;margin:0 0 12px;display:flex;align-items:center;gap:9px;letter-spacing:-.01em}
+  h2 .num{font-size:11px;font-weight:800;color:#0b1020;background:var(--accent);border-radius:6px;padding:2px 7px}
+  .lead{color:var(--muted);font-size:13.5px;margin:0 0 16px;line-height:1.6;max-width:80ch}
+  table{width:100%;border-collapse:collapse;margin:8px 0 0;font-size:13.5px}
+  th,td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.5}
+  th{font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr:nth-child(2n) td{background:rgba(255,255,255,.025)}
+  tbody tr:last-child td{border-bottom:none}
+  b.hl{color:#fff} .big{font-size:30px;font-weight:800;color:var(--good)}
+  .tag{font-size:10px;font-weight:700;padding:1px 7px;border-radius:5px;margin-left:4px}
+  .t-text{background:rgba(124,156,255,.18);color:#b9c8ff} .t-geo{background:rgba(52,211,153,.18);color:#8ef0c8}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h3{margin:0 0 6px;font-size:14px}
+  .card p{margin:0;font-size:13px;color:var(--muted)}
+  .callout{background:rgba(124,156,255,.08);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.6;margin-top:16px}
+  .callout.india{border-left-color:var(--geo);background:rgba(52,211,153,.07)}
+  .callout.warn{border-left-color:var(--warn);background:rgba(245,158,11,.08)}
+  .statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center}
+  .stat .v{font-size:22px;font-weight:800;color:#fff} .stat .l{font-size:11px;color:var(--muted);margin-top:4px}
+  .play textarea{width:100%;min-height:70px;font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .play .out{margin-top:10px;font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;white-space:pre-wrap;word-break:break-word}
+  .strike{color:var(--bad);text-decoration:line-through;background:rgba(239,68,68,.12);border-radius:3px;padding:0 2px}
+  .kept{color:var(--good);background:rgba(34,197,94,.14);border-radius:3px;padding:0 3px;font-weight:700}
+  code{font-family:ui-monospace,Menlo,monospace;background:#16213f;padding:1px 5px;border-radius:4px;font-size:12px}
+  ul{margin:6px 0 0;padding-left:20px} li{margin:6px 0;font-size:13.5px}
+  a.inline{color:var(--accent)} footer{color:var(--muted);font-size:12px;text-align:center;margin-top:26px}
+  @media(max-width:760px){.grid2,.statgrid{grid-template-columns:1fr}h1{font-size:25px}section{padding:20px}}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div class="wrap">
+  <header class="reveal">
+    <div class="eyebrow"><a href="https://theschoolof.ai/">The School of AI</a> · ERA V5 · Session 4 — Data Cleaning &amp; Deduplication</div>
+    <h1>Cleaning the Indic Corpus &amp; Geospatial Data</h1>
+    <p class="sub">The session lays out a cleaning pipeline as an ordered sequence of stages. I counted them, picked two
+      datasets from our Session-3 catalog — an <b>Indic web corpus</b> and a <b>geospatial gazetteer</b> — ran all the
+      cleanups for real, and report the honest statistics below.</p>
+    <div class="chips" id="chips"></div>
+  </header>
+
+  <section class="reveal">
+    <h2><span class="num">1</span>How many strategies — and what they are</h2>
+    <p class="lead">The definitive list is stated in §14: <i>normalization, format discipline, quality filtering,
+      deduplication, language validation, PII removal, decontamination, and the manifest.</i> That is
+      <b>8 cleaning strategies</b> (9 pipeline stages if you count <i>extraction</i>, inherited from Session 3 as stage 0).
+      They are an <b>ordered sequence</b> — each depends on the one before — and one rule sits under all of them:
+      <b>cleaning happens before the content hash is computed</b>.</p>
+    <table>
+      <thead><tr><th>#</th><th>Strategy</th><th>What it does</th><th>V4 defect it fixes</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><b>Normalization</b></td><td>Unicode-canonicalize (NFC), strip invisible control chars (ZWSP/BOM/bidi) but <b>keep</b> Brahmic ZWJ/ZWNJ, unescape HTML, collapse whitespace</td><td>46 garbage tokens in the vocab (zero-width, HTML, broken bytes)</td></tr>
+        <tr><td>2</td><td><b>Format discipline</b></td><td>Rewrite every source's conversation markers into one canonical special-token format at ingestion</td><td>4 sources in 4 formats → ghost markers in pretraining shards</td></tr>
+        <tr><td>3</td><td><b>Quality filtering</b></td><td>Heuristic rules + trained edu-value classifier — must be <b>script-aware</b></td><td>English-tuned filters silently killing good Indic text</td></tr>
+        <tr><td>4</td><td><b>Deduplication</b></td><td>Exact + near-dup via shingles → <b>MinHash → LSH</b>; global, not local</td><td>No dedup on the Indic crawl → wasted compute + memorization</td></tr>
+        <tr><td>5</td><td><b>Language ID &amp; validation</b></td><td>Detect language at runtime, don't trust the folder path; catch mislabels + code bugs</td><td>Telugu 2-char vs 3-char code that "worked by accident"</td></tr>
+        <tr><td>6</td><td><b>PII removal</b></td><td>Regex (emails/phones/IPs) + ML (names); precision/recall tension, sharper for Indic names</td><td>Indic names/place-names wrongly masked</td></tr>
+        <tr><td>7</td><td><b>Decontamination</b></td><td>Fingerprint eval sets, remove overlapping train docs, plant canaries</td><td>Benchmark leakage inflating scores</td></tr>
+        <tr><td>8</td><td><b>Reproducibility &amp; manifest</b></td><td>Deterministic (content hashes); every shard carries a provenance manifest — no shard enters without one</td><td>Copy-pasted file sizes, non-deterministic IDs, Indic token counts off by ×</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">2</span>Datasets I picked</h2>
+    <p class="lead">Both come straight from the Session-3 source catalog, and both are where the session's India-first cleaning rules actually bite.</p>
+    <div class="grid2">
+      <div class="card"><h3>Indic corpus <span class="tag t-text">TEXT</span></h3>
+        <p><b>AI4Bharat Sangraha</b> (unverified crawl). Streamed a representative sample of <b id="d-docs">—</b> docs
+          across <b id="d-langs">—</b> languages (Hindi, Bengali, Telugu, Tamil), ≈<b id="d-tok">—</b> tokens.
+          CC-BY-4.0. Chosen to exercise normalization (joiners), script-aware filtering, dedup, language validation, PII.</p></div>
+      <div class="card"><h3>Geospatial gazetteer <span class="tag t-geo">GEO</span></h3>
+        <p><b>GeoNames — India</b> (<code>IN.txt</code>), the full <b id="g-rows">—</b>-place gazetteer. CC-BY-4.0.
+          Chosen for the cartographic-sovereignty angle (Session-3 geospatial thread) plus real structured-data
+          cleaning: coordinate validation, place dedup, Indic-name coverage.</p></div>
+    </div>
+    <p class="lead" style="margin-top:14px">Interpreting "10–100M" as tokens: I processed a real sample fully to get honest per-stage numbers (the Indic slice is ~2.3M tokens sampled from a multi-billion-token corpus; the geo gazetteer is processed in full).</p>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">3</span>What was cleaned — Indic corpus <span class="tag t-text">TEXT</span></h2>
+    <p class="lead">Sangraha ships pre-curated, so the honest story is the session's own: clean at the document level ≠ clean at the character level, and the real value is the <b>Indic-specific safeguards</b>.</p>
+    <table id="text-tbl"><thead><tr><th>Strategy</th><th>Result (real)</th><th>Why / how</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">4</span>What was cleaned — Geospatial <span class="tag t-geo">GEO</span></h2>
+    <p class="lead">Structured data, so the same 8 strategies re-map: normalization + schema discipline, coordinate-validation as quality, place dedup, and — the India-first one — cartographic sovereignty.</p>
+    <table id="geo-tbl"><thead><tr><th>Strategy</th><th>Result (real)</th><th>Why / how</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">5</span>Other strategies &amp; concerns cleaned up</h2>
+    <div class="callout warn"><b>The filter-bias trap (the headline finding).</b> A generic <b>English-tuned</b> quality filter
+      (Gopher-style stop-word rule) would have <b>wrongly discarded <span id="bias-n">—</span> of <span id="bias-tot">—</span>
+      (<span id="bias-pct">—</span>) genuinely good Indic documents</b> — because Indic text has no English stop-words.
+      Our <b>script-aware</b> filter keeps them. Filtering is not neutral cleaning; it decides which languages the model can speak.</p>
+    </div>
+    <ul>
+      <li><b>Brahmic joiner preservation</b> — normalization strips ZWSP/BOM/bidi overrides but <b>keeps ZWJ/ZWNJ</b> (real linguistic content in Indic scripts). A generic "strip all invisibles" cleaner mangles Indic while believing it helps.</li>
+      <li><b>Indic-PII precision/recall</b> — regex identifiers mask cleanly; a name-detector over-masks common Indic names/place-names, so name masking must trade recall for precision on Indic (kept conservative here).</li>
+      <li><b>Global vs local dedup</b> — near-dup dedup must run over the <b>whole</b> corpus on one large-memory machine; per-shard dedup leaves cross-shard copies. (Text sample already deduped upstream → 0 found; geo showed real dupes.)</li>
+      <li><b>Cartographic sovereignty</b> — <b id="c-disp">—</b> geo entries share a claim with PK/CN and must follow the India-official (Survey of India) stance, not the viewer-geography "disputed" framing Western sources use.</li>
+      <li><b>Indic-name coverage gap</b> — only <b id="c-indic">—</b> of India's places carry a native-script name in GeoNames: a real India-first data deficiency that enrichment (LGD/Indic gazetteers) must fix.</li>
+      <li><b>Decontamination + canaries</b> — near-dup leakage scan against a held-out set (<span id="c-leak">—</span> leaks in this clean sample) and a planted canary string that is detectable after the fact.</li>
+      <li><b>Manifest &amp; determinism</b> — every shard gets a content-hash manifest (source, license, cleaning-script hash, token count, language breakdown); the same input reproduces the same hash.</li>
+    </ul>
+  </section>
+
+  <section class="reveal">
+    <h2><span class="num">6</span>Final statistics</h2>
+    <div class="statgrid" id="statgrid"></div>
+    <div class="grid2" style="margin-top:18px">
+      <div class="card"><h3>Indic corpus manifest <span class="tag t-text">TEXT</span></h3><pre id="man-text" style="margin:0;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;white-space:pre-wrap;color:var(--muted)"></pre></div>
+      <div class="card"><h3>Geospatial manifest <span class="tag t-geo">GEO</span></h3><pre id="man-geo" style="margin:0;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;white-space:pre-wrap;color:var(--muted)"></pre></div>
+    </div>
+  </section>
+
+  <section class="reveal play">
+    <h2><span class="num">▸</span>Try the normalizer (stage 1, live)</h2>
+    <p class="lead">Type or edit — invisible/control junk is <span class="strike">struck</span>, legitimate Brahmic joiners are <span class="kept">kept</span>, HTML is unescaped, ghost markers removed, whitespace collapsed.</p>
+    <textarea id="np-in"></textarea>
+    <div class="out" id="np-out"></div>
+    <div class="lead" id="np-count" style="margin-top:8px"></div>
+  </section>
+
+  <footer class="reveal"><span>Built for the <a class="inline" href="https://theschoolof.ai/">ERA course by The School of AI</a> · Session 4 · by
+    <a class="inline" href="https://github.com/christo707/era-v5-assignments">christo707</a>. Statistics computed by running the pipeline on real data.</span></footer>
+</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString("en-US");
+
+Promise.all([fetch("./text_stats.json").then(r=>r.json()), fetch("./geo_stats.json").then(r=>r.json())])
+.then(([T,G])=>render(T,G)).catch(e=>{ $("chips").innerHTML="<span>⚠ serve over http to load stats: "+e+"</span>"; });
+
+function render(T,G){
+  const man=T.manifest;
+  $("chips").innerHTML = [
+    "<b>8</b> strategies","<b>2</b> datasets",
+    `<b>${fmt(T.input_docs)}</b> Indic docs · ~${(man.est_tokens_indic/1e6).toFixed(2)}M tokens`,
+    `<b>${fmt(G.rows_in)}</b> geo places → ${fmt(G.survival["3_deduped"])}`
+  ].map(s=>`<span>${s}</span>`).join("");
+  // dataset cards
+  $("d-docs").textContent=fmt(T.input_docs);
+  $("d-langs").textContent=Object.keys(man.languages).length;
+  $("d-tok").textContent=(man.est_tokens_indic/1e6).toFixed(2)+"M";
+  $("g-rows").textContent=fmt(G.rows_in);
+  // text table
+  const nrm=T.normalization, fmt_=T.format, q=T.quality, dd=T.dedup, lg=T.language, pii=T.pii, dc=T.decontam;
+  const trows=[
+    ["1 · Normalization", `${nrm.invisible_stripped} invisible + ${nrm.control_stripped} control chars stripped · ${nrm.joiners_kept} ZWJ/ZWNJ kept`, "canonical form; keep Brahmic joiners"],
+    ["2 · Format discipline", `${fmt_.ghost_docs} ghost-marker docs · ${fmt_.htmltags} stray HTML tags removed`, "no fake structure into pretraining"],
+    ["3 · Quality (script-aware)", `${q.dropped} dropped — English filter would drop ${fmt(q.english_bias_would_wrongly_drop)}`, "script-aware keeps good Indic text"],
+    ["4 · Deduplication", `${dd.exact} exact + ${dd.near} near (${dd.pct_removed}%)`, "Sangraha pre-deduped; MinHash+LSH confirms"],
+    ["5 · Language validation", `${lg.mismatches} script mismatches`, "detect script at runtime, not folder"],
+    ["6 · PII removal", `${pii.email} emails · ${pii.phone} phones · ${pii.ip} IPs · ${pii.aadhaar_like} Aadhaar-like masked`, "regex identifiers; names kept conservative"],
+    ["7 · Decontamination", `${dc.near_dup_leaks} leaks vs ${dc.holdout}-doc held-out set · canary ✓`, "firewall train vs eval"],
+    ["8 · Manifest", `content hash ${man.content_hash.slice(0,12)}… · deterministic ✓`, "provenance; no shard without one"],
+  ];
+  $("text-tbl").querySelector("tbody").innerHTML=trows.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td style="color:var(--muted)">${r[2]}</td></tr>`).join("");
+  // geo table
+  const gv=G.survival, gc=G.coordinate_validation, gd=G.dedup, gl=G.language, cs=G.cartographic_sovereignty;
+  const grows=[
+    ["1 · Normalization", "NFC + control-strip on names/alt-names; Indic names preserved", "clean gazetteer strings"],
+    ["2 · Schema discipline", "unified to canonical record (name, coords, admin, alt-names)", "one format from many columns"],
+    ["3 · Quality / coords", `${fmt(gc.out_of_india_extent_dropped)} out-of-India-extent dropped`, "valid coords within official extent"],
+    ["4 · Deduplication", `${fmt(gd.duplicate_places_removed)} duplicate places (${gd.pct_removed}%)`, "same name+admin+~1km, keep max-population"],
+    ["5 · Language / script", `${gl.indic_name_coverage_pct}% carry a native Indic name`, "measure Indic-name coverage"],
+    ["6 · PII", "negligible — coordinates aren't personal data", "gazetteer has no PII"],
+    ["7 · Decontamination", "N/A for coordinate data", "no benchmark-text leakage"],
+    ["8 · Cartographic + manifest", `${fmt(cs.cross_border_disputed_flagged)} disputed-border entries flagged · deterministic ✓`, "India-official stance; provenance"],
+  ];
+  $("geo-tbl").querySelector("tbody").innerHTML=grows.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td style="color:var(--muted)">${r[2]}</td></tr>`).join("");
+  // concerns
+  const pct=(100*q.english_bias_would_wrongly_drop/T.input_docs).toFixed(1)+"%";
+  $("bias-n").textContent=fmt(q.english_bias_would_wrongly_drop); $("bias-tot").textContent=fmt(T.input_docs); $("bias-pct").textContent=pct;
+  $("c-disp").textContent=fmt(cs.cross_border_disputed_flagged);
+  $("c-indic").textContent=gl.indic_name_coverage_pct+"%";
+  $("c-leak").textContent=dc.near_dup_leaks;
+  // stat grid
+  $("statgrid").innerHTML=[
+    [pct,"good Indic docs an English filter would wrongly drop"],
+    [fmt(nrm.invisible_stripped+nrm.control_stripped),"invisible/control chars stripped (Indic sample)"],
+    [fmt(gd.duplicate_places_removed),"duplicate geo places removed"],
+    [fmt(cs.cross_border_disputed_flagged),"disputed-border geo entries flagged"],
+  ].map(s=>`<div class="stat"><div class="v">${s[0]}</div><div class="l">${s[1]}</div></div>`).join("");
+  // manifests
+  $("man-text").textContent=JSON.stringify(man,null,1);
+  $("man-geo").textContent=JSON.stringify(G.manifest,null,1);
+}
+
+// ---- live normalizer (mirrors clean_text.py stage 1 + format) ----
+const KEEP=new Set(["‍","‌"]); // ZWJ, ZWNJ
+const STRIP=new Set(["​","﻿","­","⁠","‎","‏","�","‪","‫","‬","‭","‮","⁦","⁧","⁨","⁩"]);
+const ENT={"&amp;":"&","&lt;":"<","&gt;":">","&quot;":'"',"&#39;":"'","&nbsp;":" "};
+const GHOST=/<\|[^|>]{0,20}\|>|\[\/?INST\]|<<\/?SYS>>|<\/?s>|<\|endoftext\|>|###\s*(Human|Assistant|System)\s*:?/gi;
+function esc(s){return s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));}
+function runNorm(){
+  let t=$("np-in").value;
+  let html="", removed=0, kept=0, ghosts=0;
+  t=t.replace(/&[a-z#0-9]+;/gi,m=>ENT[m]!==undefined?ENT[m]:m); // unescape
+  t=t.replace(GHOST,m=>{ghosts++; return " ⟪ghost:"+m.replace(/</g,"‹")+"⟫";}); // flag ghosts (shown then removed in count)
+  let outChars=[];
+  for(const ch of t){
+    if(KEEP.has(ch)){ kept++; html+='<span class="kept">ZWJ</span>'; outChars.push(ch); continue; }
+    if(STRIP.has(ch)||( ch.charCodeAt(0)<32 && ch!=="\n" && ch!=="\t")){ removed++; html+='<span class="strike">·'+ch.codePointAt(0).toString(16)+'</span>'; continue; }
+    html+=esc(ch); outChars.push(ch);
+  }
+  // collapse whitespace + strip ghosts from final
+  let finalText=outChars.join("").replace(GHOST," ").replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim();
+  $("np-out").innerHTML=html.replace(/⟪ghost:([^⟫]*)⟫/g,'<span class="strike">$1</span>');
+  $("np-count").innerHTML=`<b>${removed}</b> invisible/control stripped · <b class="kept" style="padding:0 4px">${kept}</b> joiners kept · <b>${ghosts}</b> ghost markers removed · cleaned length <b>${finalText.length}</b>`;
+}
+$("np-in").value="Prices &amp; taxes​ rose﻿ 20%. ‮reversed‬  [INST]hi[/INST]  नमस्‍ते (joiner kept)";
+$("np-in").addEventListener("input",runNorm); runNorm();
+
+// progress bar + reveal
+const bar=$("progress");
+addEventListener("scroll",()=>{const h=document.documentElement,mx=h.scrollHeight-h.clientHeight;bar.style.width=(mx>0?h.scrollTop/mx*100:0)+"%";},{passive:true});
+if(!(matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) && "IntersectionObserver" in window){
+  document.documentElement.classList.add("reveal-on");
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}}),{threshold:.12,rootMargin:"0px 0px -8% 0px"});
+  document.querySelectorAll(".reveal").forEach(b=>io.observe(b));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+{
+  "dataset": "GeoNames — India gazetteer (IN.txt)",
+  "source_url": "https://download.geonames.org/export/dump/IN.zip",
+  "license": "CC-BY-4.0",
+  "rows_in": 659977,
+  "survival": {
+    "0_input": 659977,
+    "1_valid_coords_and_name": 659977,
+    "2_in_india_extent": 659976,
+    "3_deduped": 658581
+  },
+  "normalization": {
+    "note": "NFC + control-char strip on name/alt-names; Indic script names preserved"
+  },
+  "quality": {
+    "missing_coords": 0,
+    "empty_name": 0,
+    "malformed": 0
+  },
+  "coordinate_validation": {
+    "out_of_india_extent_dropped": 1,
+    "extent_used": "lat 6.0-37.6, lng 68.0-97.5 (incl. J&K/Ladakh/Arunachal)"
+  },
+  "dedup": {
+    "duplicate_places_removed": 1395,
+    "pct_removed": 0.21
+  },
+  "language": {
+    "places_with_indic_name": 1796,
+    "indic_name_coverage_pct": 0.27
+  },
+  "cartographic_sovereignty": {
+    "cross_border_disputed_flagged": 134,
+    "note": "entries sharing a claim with PK/CN — must follow the India-official (Survey of India) stance, not the viewer-geography 'disputed' framing Western sources use"
+  },
+  "pii": {
+    "note": "gazetteer of place coordinates — negligible personal data (place names/coords are not PII)"
+  },
+  "decontamination": {
+    "note": "N/A for coordinate gazetteer (no benchmark-text leakage risk); provenance manifest still required"
+  },
+  "feature_class_breakdown": {
+    "P": 557995,
+    "H": 35085,
+    "S": 20007,
+    "L": 19120,
+    "T": 17875,
+    "A": 7743,
+    "V": 1670,
+    "R": 480,
+    "U": 1
+  },
+  "manifest": {
+    "source": "GeoNames India (IN.txt)",
+    "license": "CC-BY-4.0",
+    "records": 658581,
+    "content_hash": "33dae68208c46419848e1ebe01c6caa8f5545cb81d0c79a2ae6bcd7a7f46abfa",
+    "cleaning_script_sha256_16": "04bac2896694a270",
+    "deterministic": true,
+    "top_admin1": {
+      "36": 171769,
+      "35": 58621,
+      "34": 46704,
+      "25": 45928,
+      "19": 38941,
+      "02": 34624
+    }
+  }
+}

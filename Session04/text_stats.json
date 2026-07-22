@@ -1,0 +1,70 @@
+{
+  "dataset": "AI4Bharat Sangraha — Indic web crawl (12 languages)",
+  "input_docs": 3200,
+  "input_chars": 8203606,
+  "survival": {
+    "0_input": 3200,
+    "1_normalized": 3200,
+    "2_format": 3200,
+    "3_quality": 3200,
+    "4_dedup": 3200,
+    "5_language": 3200,
+    "8_final": 3200
+  },
+  "normalization": {
+    "invisible_stripped": 14,
+    "control_stripped": 7,
+    "joiners_kept": 0,
+    "whitespace_docs": 3200
+  },
+  "format": {
+    "ghost_docs": 0,
+    "ghost_markers": 0,
+    "htmltag_docs": 1,
+    "htmltags": 2
+  },
+  "quality": {
+    "dropped": 0,
+    "reasons": {},
+    "english_bias_would_wrongly_drop": 2871
+  },
+  "dedup": {
+    "exact": 0,
+    "near": 0,
+    "pct_removed": 0.0
+  },
+  "language": {
+    "mismatches": 0,
+    "by": {},
+    "note": "script-level check catches cross-script errors; same-script (Assamese/Bengali, Hindi/Marathi) needs a language-level classifier (IndicLID)"
+  },
+  "pii": {
+    "email": 11,
+    "phone": 15,
+    "ip": 3,
+    "aadhaar_like": 2
+  },
+  "decontam": {
+    "holdout": 200,
+    "near_dup_leaks": 0,
+    "canary_detected": true
+  },
+  "manifest": {
+    "source": "AI4Bharat Sangraha (unverified crawl split)",
+    "source_url": "https://huggingface.co/datasets/ai4bharat/sangraha",
+    "license": "CC-BY-4.0",
+    "languages": {
+      "ben": 800,
+      "hin": 800,
+      "tam": 800,
+      "tel": 800
+    },
+    "docs": 3200,
+    "chars": 8199776,
+    "words": 1178633,
+    "est_tokens_indic": 2342793,
+    "content_hash": "e49f0dbdbd27dc84fe232b990a9dc037421cec7d1663babb96cc5860e5d091b7",
+    "cleaning_script_sha256_16": "74347ae4f9c96083",
+    "deterministic": true
+  }
+}
