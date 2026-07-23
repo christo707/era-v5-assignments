@@ -8,8 +8,8 @@ This repository is organized by session. After each class I add my work under th
 
 - **Session 1 — Why Neural Networks Work:** https://chris-era-v5-s1.netlify.app/
 - **Session 2 — Faithful Multilingual BPE Tokenizer:** https://chris-era-v5-s2.netlify.app/
-- **Session 3 — Anvesha: A 40B India-First LLM (design report):** _Netlify link pending deploy_
-- **Session 4 — Cleaning the Indic Corpus & Geospatial Data:** _Netlify link pending deploy_
+- **Session 3 — Anvesha: A 40B India-First LLM (design report):** https://chris-era-v5-s3.netlify.app/
+- **Session 4 — Cleaning the Indic Corpus & Geospatial Data:** https://chris-era-v5-s4.netlify.app/
 
 ## Course at a glance
 
